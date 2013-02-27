@@ -1,0 +1,34 @@
+﻿<Window x:Class="Defect.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        SizeToContent="WidthAndHeight"
+        Height="auto"
+        Width="auto"
+        Title="Defect"
+        Closing="Window_Closing">
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="auto"></RowDefinition>
+      <RowDefinition Height="auto"></RowDefinition>
+      <RowDefinition Height="auto"></RowDefinition>
+    </Grid.RowDefinitions>
+    <Menu Grid.Row="0" IsMainMenu="True">
+      <MenuItem Header="_File">
+        <MenuItem Header="_New" Click="New"></MenuItem>
+        <MenuItem Header="_Save as..." Click="SaveAs"></MenuItem>
+        <Separator></Separator>
+        <MenuItem Header="_Exit" Click="Exit"></MenuItem>
+      </MenuItem>
+      <MenuItem Header="_Edit">
+        <MenuItem Header="_Copy" Click="Copy"></MenuItem>
+        <MenuItem Header="_Go" Click="Go" Name="GoMenuItem"></MenuItem>
+        <MenuItem Header="_Stop" Click="Stop" Name="StopMenuItem"></MenuItem>
+      </MenuItem>
+      <MenuItem Header="_Help">
+        <MenuItem Header="_About" Click="About"></MenuItem>
+      </MenuItem>
+    </Menu>
+    <Image Grid.Row="1" UseLayoutRounding="True" Name="Output"></Image>
+    <TextBlock Grid.Row="2" Name="Status"></TextBlock>
+  </Grid>
+</Window>

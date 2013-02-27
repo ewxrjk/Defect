@@ -1,0 +1,25 @@
+﻿<Window x:Class="Defect.About"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner"
+        SizeToContent="WidthAndHeight"
+        Title="About Defect"
+        Height="auto" Width="auto">
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="auto"></RowDefinition>
+      <RowDefinition Height="auto"></RowDefinition>
+      <RowDefinition Height="auto"></RowDefinition>
+      <RowDefinition Height="auto"></RowDefinition>
+    </Grid.RowDefinitions>
+    <Grid.ColumnDefinitions></Grid.ColumnDefinitions>
+    <TextBlock Grid.Column="0" Grid.Row="0" FontSize="32" Margin="4" TextAlignment="Center">Defect</TextBlock>
+    <TextBlock Grid.Column="0" Grid.Row="1" FontSize="12" Margin="4" TextAlignment="Center">
+      <Hyperlink Name="link" NavigateUri="http://www.greenend.org.uk/rjk/" RequestNavigate="VisitHomePage">http://www.greenend.org.uk/rjk/</Hyperlink> <!-- TODO -->
+    </TextBlock>
+    <TextBlock Grid.Column="0" Grid.Row="2" FontSize="12" Margin="4"  TextAlignment="Center">© 2013 Richard Kettlewell</TextBlock>
+    <Button Grid.Column="0" Grid.Row="3" Click="OK"  Margin="4"  Width="64" Height="auto" IsDefault="True">OK</Button>
+  </Grid>
+</Window>
