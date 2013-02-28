@@ -273,5 +273,11 @@ namespace Defect
     {
       Stop(null, null);
     }
+
+    private void NewAndGo(object sender, RoutedEventArgs e)
+    {
+      New(sender, e);
+      Go(sender, e);
+    }
   }
 }
