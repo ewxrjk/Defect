@@ -107,7 +107,8 @@ namespace Defect
       InitializeBitmap();
       InitializeColorData();
       InitializePalette();
-      Render();
+      UpdateColorData();
+      UpdateBitmap();
       Output.Source = Bitmap;
       Status.Text = "Use Edit > Go to begin";
     }
@@ -156,11 +157,19 @@ namespace Defect
     }
 
     /// <summary>
-    /// Render to the bitmap
+    /// Update ColorData from the current state of Arena
     /// </summary>
-    private void Render()
+    private void UpdateColorData()
     {
       Arena.Render(ColorData, Palette, Scale);
+    }
+
+    /// <summary>
+    /// Update Bitmap from the current state of ColorData
+    /// </summary>
+    /// <remarks><para>Must be called in the UI thread.</para></remarks>
+    private void UpdateBitmap()
+    {
       Bitmap.WritePixels(new Int32Rect(0, 0, Arena.Width * Scale, Arena.Height * Scale), ColorData, 4 * Arena.Width * Scale, 0);
     }
 
@@ -223,6 +232,7 @@ namespace Defect
     {
       try {
         DateTime last = DateTime.UtcNow;
+        TimeSpan perf = new TimeSpan();
         for (; ; ) {
           bool render = false;
           int changed = 0;
@@ -233,6 +243,8 @@ namespace Defect
             DateTime now = DateTime.UtcNow;
             if (now.Subtract(last).TotalSeconds >= StepInterval) {
               changed = Arena.Step();
+              UpdateColorData();
+              perf = DateTime.UtcNow.Subtract(now);
               render = true;
               last = now;
             }
@@ -240,9 +252,8 @@ namespace Defect
           if (render) {
             Dispatcher.InvokeAsync(() =>
             {
-              Status.Text = string.Format("{0} cells changed", changed);
-              // TODO this ain't right, it could be stepping again in the other thread.
-              Render();
+              Status.Text = string.Format("{0} cells changed; {1}ms", changed, perf.TotalMilliseconds);
+              UpdateBitmap();
               if (changed == 0) {
                 // Stuck!
                 System.Media.SystemSounds.Exclamation.Play();
