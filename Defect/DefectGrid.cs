@@ -41,6 +41,9 @@ namespace Defect
 
     private int[,] NewData;
 
+    /// <summary>
+    /// Number of rows computed in a single call into the thread pool
+    /// </summary>
     private int ChunkSize = 8;
 
     /// <summary>
@@ -59,6 +62,7 @@ namespace Defect
         ThreadPool.QueueUserWorkItem((object unused) =>
         {
           int limit = Math.Min(Height, y0_rebound + ChunkSize);
+          int changed_here = 0;
           for (int y = y0_rebound; y < limit; ++y) {
             for (int x = 0; x < Width; ++x) {
               int nextLevel = Up(Data[y, x], Levels);
@@ -67,7 +71,7 @@ namespace Defect
                  || Data[y, Up(x, Width)] == nextLevel
                  || Data[y, Down(x, Width)] == nextLevel) {
                 NewData[y, x] = nextLevel;
-                ++changed;
+                ++changed_here;
               }
               else {
                 NewData[y, x] = Data[y, x];
@@ -76,6 +80,7 @@ namespace Defect
           }
           lock (this) {
             --left;
+            changed += changed_here;
             Monitor.Pulse(this);
           }
         });
