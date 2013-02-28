@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace Defect
 {
@@ -40,6 +41,8 @@ namespace Defect
 
     private int[,] NewData;
 
+    private int ChunkSize = 8;
+
     /// <summary>
     /// Step the array
     /// </summary>
@@ -50,19 +53,36 @@ namespace Defect
       // 1 greater (mod Levels) than they are in value, they
       // change to that value.
       int changed = 0;
-      for (int y = 0; y < Height; ++y) {
-        for (int x = 0; x < Width; ++x) {
-          int nextLevel = Up(Data[y, x], Levels);
-          if (Data[Up(y, Height), x] == nextLevel
-             || Data[Down(y, Height), x] == nextLevel
-             || Data[y, Up(x, Width)] == nextLevel
-             || Data[y, Down(x, Width)] == nextLevel) {
-            NewData[y, x] = nextLevel;
-            ++changed;
+      int left = Height / ChunkSize;
+      for (int y0 = 0; y0 < Height; y0 += ChunkSize) {
+        int y0_rebound = y0;
+        ThreadPool.QueueUserWorkItem((object unused) =>
+        {
+          int limit = Math.Min(Height, y0_rebound + ChunkSize);
+          for (int y = y0_rebound; y < limit; ++y) {
+            for (int x = 0; x < Width; ++x) {
+              int nextLevel = Up(Data[y, x], Levels);
+              if (Data[Up(y, Height), x] == nextLevel
+                 || Data[Down(y, Height), x] == nextLevel
+                 || Data[y, Up(x, Width)] == nextLevel
+                 || Data[y, Down(x, Width)] == nextLevel) {
+                NewData[y, x] = nextLevel;
+                ++changed;
+              }
+              else {
+                NewData[y, x] = Data[y, x];
+              }
+            }
           }
-          else {
-            NewData[y, x] = Data[y, x];
+          lock (this) {
+            --left;
+            Monitor.Pulse(this);
           }
+        });
+      }
+      lock (this) {
+        while (left > 0) {
+          Monitor.Wait(this);
         }
       }
       int[,] tmp = Data;
