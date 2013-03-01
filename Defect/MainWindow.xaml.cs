@@ -99,6 +99,26 @@ namespace Defect
 
     private void New(object sender, RoutedEventArgs e)
     {
+      Settings settings = new Settings()
+      {
+        Owner = this,
+        ParentMainWindow = this,
+      };
+      settings.ShowDialog();
+      switch(settings.Outcome) {
+        case Defect.Settings.Outcomes.Cancelled:
+          break;
+        case Defect.Settings.Outcomes.Reset:
+          Reset();
+          break;
+        case Defect.Settings.Outcomes.ResetAndGo:
+          Reset();
+          Go(null, null);
+          break;
+      }
+    }
+
+    private void Reset() {
       // If the worker is going, cancel it
       Stop(null, null);
       Arena = new DefectGrid(ArenaWidth, ArenaHeight, ArenaLevels);
@@ -274,10 +294,5 @@ namespace Defect
       Stop(null, null);
     }
 
-    private void NewAndGo(object sender, RoutedEventArgs e)
-    {
-      New(sender, e);
-      Go(sender, e);
-    }
   }
 }

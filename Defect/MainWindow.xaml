@@ -15,7 +15,6 @@
     <Menu Grid.Row="0" IsMainMenu="True">
       <MenuItem Header="_File">
         <MenuItem Header="_New" Click="New"></MenuItem>
-        <MenuItem Header="New and go" Click="NewAndGo"></MenuItem>
         <MenuItem Header="_Save as..." Click="SaveAs"></MenuItem>
         <Separator></Separator>
         <MenuItem Header="_Exit" Click="Exit"></MenuItem>
