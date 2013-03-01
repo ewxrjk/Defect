@@ -35,6 +35,8 @@ namespace Defect
       EnableDisable();
     }
 
+    #region Settings
+
     /// <summary>
     /// Grid width
     /// </summary>
@@ -59,6 +61,10 @@ namespace Defect
     /// Display scale
     /// </summary>
     public int Scale { get; set; }
+
+    #endregion
+
+    #region State
 
     /// <summary>
     /// The current defect array
@@ -100,6 +106,19 @@ namespace Defect
     /// </summary>
     private Thread BackgroundThread = null;
 
+    #endregion
+
+    #region Window Furniture
+
+    private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+    {
+      Stop(null, null);
+    }
+
+    #endregion
+
+    #region File Menu
+
     private void New(object sender, RoutedEventArgs e)
     {
       Settings settings = new Settings()
@@ -120,6 +139,109 @@ namespace Defect
           break;
       }
     }
+
+    private void SaveAs(object sender, RoutedEventArgs e)
+    {
+      // TODO
+    }
+
+    private void Exit(object sender, RoutedEventArgs e)
+    {
+      this.Close();
+    }
+
+    #endregion
+
+    #region Edit Menu
+
+    private void Copy(object sender, RoutedEventArgs e)
+    {
+      // TODO
+    }
+
+    private void Go(object sender, RoutedEventArgs e)
+    {
+      if (!Going) {
+        Going = true;
+        BackgroundThread = new Thread(new ThreadStart(this.Worker))
+        {
+          Name = "MainWindow.Worker"
+        };
+        BackgroundThread.Start();
+        EnableDisable();
+      }
+    }
+
+    private void Stop(object sender, RoutedEventArgs e)
+    {
+      if (Going) {
+        lock (Lock) {
+          Going = false;
+        }
+        BackgroundThread.Join();
+        BackgroundThread = null;
+        EnableDisable();
+      }
+    }
+
+    private void Settings(object sender, RoutedEventArgs e)
+    {
+      Settings settings = new Settings()
+      {
+        Owner = this,
+        ParentMainWindow = this,
+      };
+      settings.CancelButton.Visibility = Visibility.Collapsed;
+      settings.ShowDialog();
+    }
+
+    #endregion
+
+    #region About Menu
+
+    private void About(object sender, RoutedEventArgs e)
+    {
+      About about = new About()
+      {
+        Owner = this
+      };
+      about.ShowDialog();
+    }
+
+    #endregion
+
+    #region Toolbar
+
+    private void Restart(object sender, RoutedEventArgs e)
+    {
+      Reset();
+    }
+
+    private void NewSpeed(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+      lock (Lock) {
+        if (e.NewValue > 0) {
+          StepInterval = 1000 / e.NewValue;
+        }
+        else {
+          StepInterval = 1000;
+        }
+      }
+    }
+
+    #endregion
+
+    #region Widget State
+
+    private void EnableDisable()
+    {
+      GoButton.IsEnabled = GoMenuItem.IsEnabled = !Going;
+      StopButton.IsEnabled = StopMenuItem.IsEnabled = Going;
+    }
+
+    #endregion
+
+    #region Setup
 
     private void Reset() {
       // If the worker is going, cancel it
@@ -179,6 +301,10 @@ namespace Defect
       }
     }
 
+    #endregion
+
+    #region Updating
+
     /// <summary>
     /// Update ColorData from the current state of Arena
     /// </summary>
@@ -196,60 +322,9 @@ namespace Defect
       Bitmap.WritePixels(new Int32Rect(0, 0, Arena.Width * Scale, Arena.Height * Scale), ColorData, 4 * Arena.Width * Scale, 0);
     }
 
-    private void SaveAs(object sender, RoutedEventArgs e)
-    {
-      // TODO
-    }
+    #endregion
 
-    private void Exit(object sender, RoutedEventArgs e)
-    {
-      this.Close();
-    }
-
-    private void Copy(object sender, RoutedEventArgs e)
-    {
-      // TODO
-    }
-
-    private void About(object sender, RoutedEventArgs e)
-    {
-      About about = new About()
-      {
-        Owner = this
-      };
-      about.ShowDialog();
-    }
-
-    private void Go(object sender, RoutedEventArgs e)
-    {
-      if (!Going) {
-        Going = true;
-        BackgroundThread = new Thread(new ThreadStart(this.Worker))
-        {
-          Name = "MainWindow.Worker"
-        };
-        BackgroundThread.Start();
-        EnableDisable();
-      }
-    }
-
-    private void Stop(object sender, RoutedEventArgs e)
-    {
-      if (Going) {
-        lock (Lock) {
-          Going = false;
-        }
-        BackgroundThread.Join();
-        BackgroundThread = null;
-        EnableDisable();
-      }
-    }
-
-    private void EnableDisable()
-    {
-      GoButton.IsEnabled = GoMenuItem.IsEnabled = !Going;
-      StopButton.IsEnabled = StopMenuItem.IsEnabled = Going;
-    }
+    #region Background thread
 
     private void Worker()
     {
@@ -295,33 +370,7 @@ namespace Defect
       }
     }
 
-    private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
-    {
-      Stop(null, null);
-    }
-
-    private void Restart(object sender, RoutedEventArgs e)
-    {
-      Reset();
-    }
-
-    private void NewSpeed(object sender, RoutedPropertyChangedEventArgs<double> e)
-    {
-      lock (Lock) {
-        StepInterval = 1000 - e.NewValue;
-      }
-    }
-
-    private void Settings(object sender, RoutedEventArgs e)
-    {
-      Settings settings = new Settings()
-      {
-        Owner = this,
-        ParentMainWindow = this,
-      };
-      settings.CancelButton.Visibility = Visibility.Collapsed;
-      settings.ShowDialog();
-    }
+    #endregion
 
   }
 }

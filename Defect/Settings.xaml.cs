@@ -25,6 +25,8 @@ namespace Defect
       Outcome = Outcomes.Cancelled;
     }
 
+    #region Interface
+
     /// <summary>
     /// Parent window
     /// </summary>
@@ -68,21 +70,23 @@ namespace Defect
     /// </summary>
     public Outcomes Outcome { get; private set; }
 
+    #endregion
+
+    #region Internal State
+
     private MainWindow _ParentMainWindow;
 
     private uint invalidcontrols = 0;
+
+    #endregion
+
+    #region Values
 
     private void Configure()
     {
       EnterWidth.Text = ParentMainWindow.ArenaWidth.ToString();
       EnterHeight.Text = ParentMainWindow.ArenaHeight.ToString();
       EnterStates.Text = ParentMainWindow.ArenaLevels.ToString();
-    }
-
-    private void OK(object sender, RoutedEventArgs e)
-    {
-      Outcome = Outcomes.Reset;
-      this.Close();
     }
 
     private void Changed(TextBox inputTextBlock, int min, int max, Label errorLabel, Action<int> setter, uint controlbit)
@@ -128,9 +132,22 @@ namespace Defect
       Changed(EnterStates, 2, 256, EnterStatesError, (int value) => { ParentMainWindow.ArenaLevels = value; }, 4);
     }
 
+    #endregion
+
+    #region Outcomes
+
+    private void OK(object sender, RoutedEventArgs e)
+    {
+      Outcome = Outcomes.Reset;
+      this.Close();
+    }
+
     private void Cancel(object sender, RoutedEventArgs e)
     {
       this.Close();
     }
+    
+    #endregion
+
   }
 }
