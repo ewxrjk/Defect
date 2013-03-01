@@ -57,7 +57,7 @@
       <Button Width="24" Height="24" Margin="2" Click="Go" Name="GoButton" ToolTip="Go" Content="{StaticResource Play}"/>
       <Button Width="24" Height="24" Margin="2" Click="Stop" Name="StopButton" ToolTip="Stop" Content="{StaticResource Stop}"/>
       <Button Width="24" Height="24" Margin="2" Click="Restart" Name="RestartButton" ToolTip="Restart" Content="{StaticResource Restart}"/>
-      <Slider Minimum="0" Maximum="1000" Name="SpeedSlider" Width="128" Margin="2" VerticalAlignment="Center" ToolTip="Speed" ValueChanged="NewSpeed"></Slider>
+      <Slider Minimum="0" Maximum="1000" Name="SpeedSlider" Width="128" Margin="2" VerticalAlignment="Center" ToolTip="Speed" AutoToolTipPlacement="BottomRight" ValueChanged="NewSpeed"></Slider>
     </StackPanel>
     <Image Grid.Row="2" UseLayoutRounding="True" Name="Output"></Image>
     <TextBlock Grid.Row="3" Name="Status" Margin="2"></TextBlock>
