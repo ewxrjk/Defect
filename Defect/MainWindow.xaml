@@ -48,6 +48,7 @@
         <MenuItem Header="_Copy" Click="Copy"></MenuItem>
         <MenuItem Header="_Go" Click="Go" Name="GoMenuItem"></MenuItem>
         <MenuItem Header="_Stop" Click="Stop" Name="StopMenuItem"></MenuItem>
+        <MenuItem Header="Settings" Click="Settings"></MenuItem>
       </MenuItem>
       <MenuItem Header="_Help">
         <MenuItem Header="_About" Click="About"></MenuItem>

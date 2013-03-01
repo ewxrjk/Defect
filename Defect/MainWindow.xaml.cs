@@ -312,5 +312,16 @@ namespace Defect
       }
     }
 
+    private void Settings(object sender, RoutedEventArgs e)
+    {
+      Settings settings = new Settings()
+      {
+        Owner = this,
+        ParentMainWindow = this,
+      };
+      settings.CancelButton.Visibility = Visibility.Collapsed;
+      settings.ShowDialog();
+    }
+
   }
 }
