@@ -27,8 +27,10 @@ namespace Defect
       ArenaLevels = 12;
       ArenaWidth = 256;
       ArenaHeight = 256;
-      StepInterval = 0.5;
       Scale = 2;
+      // Set the initial speed
+      StepInterval = 500;
+      SpeedSlider.Value = 1000 - StepInterval;
       Reset();  // draw an initial random image
       EnableDisable();
     }
@@ -91,7 +93,7 @@ namespace Defect
     /// <summary>
     /// ms between worker thread wakes
     /// </summary>
-    private int SleepInterval = 10;
+    private int ResponseInterval = 10;
 
     /// <summary>
     /// Background thread
@@ -257,17 +259,20 @@ namespace Defect
         for (; ; ) {
           bool render = false;
           int changed = 0;
+          double waitTime = 0;
           lock (Lock) {
             if (!Going) {
               break;
             }
             DateTime now = DateTime.UtcNow;
-            if (now.Subtract(last).TotalSeconds >= StepInterval) {
+            waitTime = StepInterval - now.Subtract(last).TotalMilliseconds;
+            if (waitTime <= 0) {
               changed = Arena.Step();
               UpdateColorData();
               perf = DateTime.UtcNow.Subtract(now);
               render = true;
               last = now;
+              waitTime = StepInterval;
             }
           }
           if (render) {
@@ -282,8 +287,8 @@ namespace Defect
               }
             });
           }
+          Thread.Sleep((int)Math.Min(waitTime, ResponseInterval));
         }
-        Thread.Sleep(SleepInterval);
       }
       catch (TaskCanceledException) {
         // We get this if the process is terminated abruptly.
@@ -298,6 +303,13 @@ namespace Defect
     private void Restart(object sender, RoutedEventArgs e)
     {
       Reset();
+    }
+
+    private void NewSpeed(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+      lock (Lock) {
+        StepInterval = 1000 - e.NewValue;
+      }
     }
 
   }
