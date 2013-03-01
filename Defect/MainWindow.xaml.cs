@@ -24,10 +24,10 @@ namespace Defect
     public MainWindow()
     {
       InitializeComponent();
-      ArenaLevels = 12;
-      ArenaWidth = 256;
-      ArenaHeight = 256;
-      Scale = 2;
+      ArenaLevels = 16;
+      ArenaWidth = 512;
+      ArenaHeight = 512;
+      Scale = 1;
       // Set the initial speed
       StepInterval = 500;
       SpeedSlider.Value = 1000 - StepInterval;
