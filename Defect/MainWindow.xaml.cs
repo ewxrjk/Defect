@@ -29,7 +29,8 @@ namespace Defect
       ArenaHeight = 256;
       StepInterval = 0.5;
       Scale = 2;
-      New(null, null);  // draw an initial random image
+      Reset();  // draw an initial random image
+      EnableDisable();
     }
 
     /// <summary>
@@ -244,8 +245,8 @@ namespace Defect
 
     private void EnableDisable()
     {
-      GoMenuItem.IsEnabled = !Going;
-      StopMenuItem.IsEnabled = Going;
+      GoButton.IsEnabled = GoMenuItem.IsEnabled = !Going;
+      StopButton.IsEnabled = StopMenuItem.IsEnabled = Going;
     }
 
     private void Worker()
@@ -292,6 +293,11 @@ namespace Defect
     private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
     {
       Stop(null, null);
+    }
+
+    private void Restart(object sender, RoutedEventArgs e)
+    {
+      Reset();
     }
 
   }

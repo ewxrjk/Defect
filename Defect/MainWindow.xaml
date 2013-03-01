@@ -11,6 +11,7 @@
       <RowDefinition Height="auto"></RowDefinition>
       <RowDefinition Height="auto"></RowDefinition>
       <RowDefinition Height="auto"></RowDefinition>
+      <RowDefinition Height="auto"></RowDefinition>
     </Grid.RowDefinitions>
     <Menu Grid.Row="0" IsMainMenu="True">
       <MenuItem Header="_File">
@@ -28,7 +29,37 @@
         <MenuItem Header="_About" Click="About"></MenuItem>
       </MenuItem>
     </Menu>
-    <Image Grid.Row="1" UseLayoutRounding="True" Name="Output"></Image>
-    <TextBlock Grid.Row="2" Name="Status"></TextBlock>
+    <StackPanel Grid.Row="1" Orientation="Horizontal">
+      <Button Width="24" Height="24" Margin="2" Click="Go" Name="GoButton" ToolTip="Go">
+        <Canvas Width="16" Height="16">
+          <Path Fill="#FF000000">
+            <Path.Data>
+              <PathGeometry Figures="M 2 2 2 14 13.079012 8 z" FillRule="NonZero"/>
+            </Path.Data>
+          </Path>
+        </Canvas>
+      </Button>
+      <Button Width="24" Height="24" Margin="2" Click="Stop" Name="StopButton" ToolTip="Stop">
+        <Canvas Width="16" Height="16">
+          <Rectangle  Canvas.Left="3" Canvas.Top="3" Width="10" Height="10" Fill="#FF000000"/>
+        </Canvas>
+      </Button>
+      <Button Width="24" Height="24" Margin="2" Click="Restart" Name="RestartButton" ToolTip="Restart">
+        <Canvas Width="16" Height="16">
+          <Path xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Fill="#FF000000" StrokeThickness="2">
+            <Path.Data>
+              <PathGeometry Figures="M 9.09375 1.59375 C 8.2618652 1.4500857 7.3708644 1.4519751 6.5 1.65625 L 6.96875 3.625 C 9.3998896 3.054738 11.804738 4.5376105 12.375 6.96875 12.945262 9.3998895 11.46239 11.804738 9.03125 12.375 6.6001105 12.945262 4.195262 11.46239 3.625 9.03125 3.2493651 7.4298444 3.7764949 5.7556301 5 4.65625 l -1.34375 -1.5 C 1.8921959 4.7413403 1.1146583 7.1910876 1.65625 9.5 2.4733498 12.983458 6.0165423 15.16085 9.5 14.34375 12.983458 13.52665 15.16085 9.9834577 14.34375 6.5 13.730925 3.8874069 11.589404 2.0247428 9.09375 1.59375 z" FillRule="NonZero"/>
+            </Path.Data>
+          </Path>
+          <Path xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Fill="#FF000000" StrokeThickness="1">
+            <Path.Data>
+              <PathGeometry Figures="m 7.65625 0.15625 -2 2 -0.375 0.34375 0.375 0.34375 2 2 0.6875 -0.6875 L 6.6875 2.5 8.34375 0.84375 7.65625 0.15625 z" FillRule="NonZero"/>
+            </Path.Data>
+          </Path>
+        </Canvas>
+      </Button>
+    </StackPanel>
+    <Image Grid.Row="2" UseLayoutRounding="True" Name="Output"></Image>
+    <TextBlock Grid.Row="3" Name="Status" Margin="2"></TextBlock>
   </Grid>
 </Window>
