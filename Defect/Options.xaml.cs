@@ -15,11 +15,11 @@ using System.Windows.Shapes;
 namespace Defect
 {
   /// <summary>
-  /// Interaction logic for Settings.xaml
+  /// Interaction logic for Options.xaml
   /// </summary>
-  public partial class Settings : Window
+  public partial class Options : Window
   {
-    public Settings()
+    public Options()
     {
       InitializeComponent();
       Outcome = Outcomes.Cancelled;

@@ -21,19 +21,37 @@ namespace Defect
   /// </summary>
   public partial class MainWindow : Window
   {
+    #region Constructors
+
     public MainWindow()
+      : this(null)
     {
-      InitializeComponent();
-      ArenaLevels = 16;
-      ArenaWidth = 512;
-      ArenaHeight = 512;
-      Scale = 1;
-      SpeedSlider.Value = Math.Floor((SpeedSlider.Minimum + SpeedSlider.Maximum) / 4);
-      Neighbourhood = CellNeighbourhood.VonNeumann;
-      Reset();  // draw an initial random image
-      EnableDisable();
     }
 
+    public MainWindow(MainWindow creator)
+    {
+      InitializeComponent();
+      if (creator == null) {
+        ArenaLevels = 16;
+        ArenaWidth = 512;
+        ArenaHeight = 512;
+        Scale = 1;
+        SpeedSlider.Value = Math.Floor((SpeedSlider.Minimum + SpeedSlider.Maximum) / 4);
+        Neighbourhood = CellNeighbourhood.VonNeumann;
+      }
+      else {
+        ArenaLevels = creator.ArenaLevels;
+        ArenaWidth = creator.ArenaWidth;
+        ArenaHeight = creator.ArenaHeight;
+        Scale = creator.Scale;
+        SpeedSlider.Value = creator.SpeedSlider.Value;
+        Neighbourhood = creator.Neighbourhood;
+      }
+      Reset();  // draw an initial random image
+    }
+
+    #endregion
+    
     #region Settings
 
     /// <summary>
@@ -116,87 +134,7 @@ namespace Defect
 
     private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
     {
-      Stop(null, null);
-    }
-
-    #endregion
-
-    #region File Menu
-
-    private void New(object sender, RoutedEventArgs e)
-    {
-      Settings settings = new Settings()
-      {
-        Owner = this,
-        ParentMainWindow = this,
-      };
-      settings.ShowDialog();
-      switch(settings.Outcome) {
-        case Defect.Settings.Outcomes.Cancelled:
-          break;
-        case Defect.Settings.Outcomes.Reset:
-          Reset();
-          break;
-        case Defect.Settings.Outcomes.ResetAndGo:
-          Reset();
-          Go(null, null);
-          break;
-      }
-    }
-
-    private void SaveAs(object sender, RoutedEventArgs e)
-    {
-      // TODO
-    }
-
-    private void Exit(object sender, RoutedEventArgs e)
-    {
-      this.Close();
-    }
-
-    #endregion
-
-    #region Edit Menu
-
-    private void Copy(object sender, RoutedEventArgs e)
-    {
-      // TODO
-    }
-
-    private void Go(object sender, RoutedEventArgs e)
-    {
-      if (!Going) {
-        Going = true;
-        BackgroundThread = new Thread(new ThreadStart(this.Worker))
-        {
-          Name = "MainWindow.Worker"
-        };
-        BackgroundThread.Start();
-        EnableDisable();
-      }
-    }
-
-    private void Stop(object sender, RoutedEventArgs e)
-    {
-      if (Going) {
-        lock (Lock) {
-          Going = false;
-        }
-        BackgroundThread.Join();
-        BackgroundThread = null;
-        EnableDisable();
-      }
-    }
-
-    private void Settings(object sender, RoutedEventArgs e)
-    {
-      Settings settings = new Settings()
-      {
-        Owner = this,
-        ParentMainWindow = this,
-      };
-      settings.CancelButton.Visibility = Visibility.Collapsed;
-      settings.ShowDialog();
+      StopExecuted(null, null);
     }
 
     #endregion
@@ -216,11 +154,6 @@ namespace Defect
 
     #region Toolbar
 
-    private void Restart(object sender, RoutedEventArgs e)
-    {
-      Reset();
-    }
-
     private void NewSpeed(object sender, RoutedPropertyChangedEventArgs<double> e)
     {
       lock (Lock) {
@@ -230,12 +163,103 @@ namespace Defect
 
     #endregion
 
-    #region Widget State
+    #region Commands specific to this window
 
-    private void EnableDisable()
+    static MainWindow()
     {
-      GoButton.IsEnabled = GoMenuItem.IsEnabled = !Going;
-      StopButton.IsEnabled = StopMenuItem.IsEnabled = Going;
+      StopGoCommand.InputGestures.Add(new KeyGesture(Key.Space));
+      OptionsCommand.InputGestures.Add(new KeyGesture(Key.O, ModifierKeys.Control));
+      ApplicationCommands.Close.InputGestures.Add(new KeyGesture(Key.W, ModifierKeys.Control));
+      ExitCommand.InputGestures.Add(new KeyGesture(Key.Q, ModifierKeys.Control));
+    }
+
+    public static RoutedCommand GoCommand = new RoutedCommand();
+
+    public static RoutedCommand StopGoCommand = new RoutedCommand();
+
+    public static RoutedCommand ResetCommand = new RoutedCommand();
+
+    public static RoutedCommand OptionsCommand = new RoutedCommand();
+
+    public static RoutedCommand ExitCommand = new RoutedCommand();
+
+    #endregion
+
+    #region Command implementations
+
+    private void GoExecuted(object sender, ExecutedRoutedEventArgs e)
+    {
+      if (!Going) {
+        Going = true;
+        BackgroundThread = new Thread(new ThreadStart(this.Worker))
+        {
+          Name = "MainWindow.Worker"
+        };
+        BackgroundThread.Start();
+      }
+    }
+
+    private void GoCanExecute(object sender, CanExecuteRoutedEventArgs e)
+    {
+      e.CanExecute = !Going;
+    }
+
+    private void StopExecuted(object sender, ExecutedRoutedEventArgs e)
+    {
+      if (Going) {
+        lock (Lock) {
+          Going = false;
+        }
+        BackgroundThread.Join();
+        BackgroundThread = null;
+      }
+    }
+
+    private void StopCanExecute(object sender, CanExecuteRoutedEventArgs e)
+    {
+      e.CanExecute = Going;
+    }
+
+    private void StopGoExecuted(object sender, ExecutedRoutedEventArgs e)
+    {
+      if (Going) {
+        StopExecuted(sender, e);
+      }
+      else {
+        GoExecuted(sender, e);
+      }
+    }
+
+    private void ResetExecuted(object sender, ExecutedRoutedEventArgs e)
+    {
+      Reset();
+    }
+
+    private void NewExecuted(object sender, ExecutedRoutedEventArgs e)
+    {
+      MainWindow newMainWindow = new MainWindow(this);
+      newMainWindow.Show();
+    }
+
+    private void CloseExecuted(object sender, ExecutedRoutedEventArgs e)
+    {
+      this.Close();
+    }
+
+    private void OptionsExecuted(object sender, ExecutedRoutedEventArgs e)
+    {
+      Options options = new Options()
+      {
+        Owner = this,
+        ParentMainWindow = this,
+      };
+      options.CancelButton.Visibility = Visibility.Collapsed;
+      options.ShowDialog();
+    }
+
+    private void ExitExecuted(object sender, ExecutedRoutedEventArgs e)
+    {
+      Environment.Exit(0);
     }
 
     #endregion
@@ -244,7 +268,7 @@ namespace Defect
 
     private void Reset() {
       // If the worker is going, cancel it
-      Stop(null, null);
+      StopExecuted(null, null);
       Arena = new DefectGrid(ArenaWidth, ArenaHeight, ArenaLevels, Neighbourhood);
       Output.Width = ArenaWidth * Scale;
       Output.Height = ArenaHeight * Scale;
@@ -254,7 +278,7 @@ namespace Defect
       UpdateColorData();
       UpdateBitmap();
       Output.Source = Bitmap;
-      Status.Text = "Use Edit > Go to begin";
+      Status.Text = "Ready";
     }
 
     /// <summary>
@@ -357,7 +381,7 @@ namespace Defect
               if (changed == 0) {
                 // Stuck!
                 System.Media.SystemSounds.Exclamation.Play();
-                Stop(null, null);
+                StopExecuted(null, null);
               }
             });
           }
