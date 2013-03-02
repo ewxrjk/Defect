@@ -28,9 +28,7 @@ namespace Defect
       ArenaWidth = 512;
       ArenaHeight = 512;
       Scale = 1;
-      // Set the initial speed
-      StepInterval = 500;
-      SpeedSlider.Value = 1000 - StepInterval;
+      SpeedSlider.Value = Math.Floor((SpeedSlider.Minimum + SpeedSlider.Maximum) / 4);
       Reset();  // draw an initial random image
       EnableDisable();
     }
@@ -220,12 +218,7 @@ namespace Defect
     private void NewSpeed(object sender, RoutedPropertyChangedEventArgs<double> e)
     {
       lock (Lock) {
-        if (e.NewValue > 0) {
-          StepInterval = 1000 / e.NewValue;
-        }
-        else {
-          StepInterval = 1000;
-        }
+        StepInterval = 1000 - (e.NewValue - SpeedSlider.Minimum) / (SpeedSlider.Maximum - SpeedSlider.Minimum) * 1000;
       }
     }
 
