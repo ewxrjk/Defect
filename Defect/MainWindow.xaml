@@ -51,7 +51,7 @@
     <Menu Grid.Row="0" IsMainMenu="True">
       <MenuItem Header="_File">
         <MenuItem Header="New Window" Command="ApplicationCommands.New"></MenuItem>
-        <MenuItem Header="Save as..."></MenuItem>
+        <MenuItem Header="Save as..." IsEnabled="False"></MenuItem>
         <MenuItem Header="Close" Command="ApplicationCommands.Close"></MenuItem>
         <Separator></Separator>
         <MenuItem Header="Exit" Command="{x:Static local:MainWindow.ExitCommand}"></MenuItem>
