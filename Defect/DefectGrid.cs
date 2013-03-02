@@ -23,15 +23,21 @@ namespace Defect
     /// <param name="levels"></param>
     public DefectGrid(int width, int height, int levels, CellNeighbourhood neighbourhood)
     {
+      if (levels < 2) {
+        throw new ArgumentException("minimum 2 states");
+      }
+      if (levels > 256) {
+        throw new ArgumentException("maximum 256 states");
+      }
       this.Width = width;
       this.Height = height;
       this.Levels = levels;
       this.Neighbourhood = neighbourhood;
-      this.Data = new int[height, width];
-      this.NewData = new int[height, width];
+      this.Data = new byte[height, width];
+      this.NewData = new byte[height, width];
       for (int y = 0; y < Height; ++y) {
         for (int x = 0; x < Width; ++x) {
-          this.Data[y, x] = rng.Next(this.Levels);
+          this.Data[y, x] = (byte)rng.Next(this.Levels);
         }
       }
     }
@@ -46,14 +52,9 @@ namespace Defect
 
     public CellNeighbourhood Neighbourhood { get; private set; }
 
-    private int[,] Data;
+    private byte[,] Data;
 
-    private int[,] NewData;
-
-    /// <summary>
-    /// Number of rows computed in a single call into the thread pool
-    /// </summary>
-    private int ChunkSize = 8;
+    private byte[,] NewData;
 
     /// <summary>
     /// Step the array
@@ -74,7 +75,7 @@ namespace Defect
           int changed_here = 0;
           for (int y = n_rebound; y < Height; y += step) {
             for (int x = 0; x < Width; ++x) {
-              int nextLevel = Up(Data[y, x], Levels);
+              byte nextLevel = (byte)Up(Data[y, x], Levels);
               if (Data[Up(y, Height), x] == nextLevel
                  || Data[Down(y, Height), x] == nextLevel
                  || Data[y, Up(x, Width)] == nextLevel
@@ -104,7 +105,7 @@ namespace Defect
           Monitor.Wait(this);
         }
       }
-      int[,] tmp = Data;
+      byte[,] tmp = Data;
       Data = NewData;
       NewData = tmp;
       return changed;
