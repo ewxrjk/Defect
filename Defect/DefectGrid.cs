@@ -7,9 +7,21 @@ using System.Threading;
 
 namespace Defect
 {
+  /// <summary>
+  /// Possible cell neighbourhoods
+  /// </summary>
   public enum CellNeighbourhood
   {
+    /// <summary>
+    /// Von Neumann neighbourhood
+    /// </summary>
+    /// <remarks>The four cells to the north, east, south and west</remarks>
     VonNeumann,
+
+    /// <summary>
+    /// Moore neighbourhood
+    /// </summary>
+    /// <remarks>The eight cells north, northeast, east, etc.</remarks>
     Moore,
   }
 
@@ -21,6 +33,7 @@ namespace Defect
     /// <param name="width"></param>
     /// <param name="height"></param>
     /// <param name="levels"></param>
+    /// <param name="neighbourhood"></param>
     public DefectGrid(int width, int height, int levels, CellNeighbourhood neighbourhood)
     {
       if (levels < 2) {
