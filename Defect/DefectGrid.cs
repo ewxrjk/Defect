@@ -7,6 +7,12 @@ using System.Threading;
 
 namespace Defect
 {
+  public enum CellNeighbourhood
+  {
+    VonNeumann,
+    Moore,
+  }
+
   public class DefectGrid
   {
     /// <summary>
@@ -15,11 +21,12 @@ namespace Defect
     /// <param name="width"></param>
     /// <param name="height"></param>
     /// <param name="levels"></param>
-    public DefectGrid(int width, int height, int levels)
+    public DefectGrid(int width, int height, int levels, CellNeighbourhood neighbourhood)
     {
       this.Width = width;
       this.Height = height;
       this.Levels = levels;
+      this.Neighbourhood = neighbourhood;
       this.Data = new int[height, width];
       this.NewData = new int[height, width];
       for (int y = 0; y < Height; ++y) {
@@ -36,6 +43,8 @@ namespace Defect
     public int Height { get; private set; }
 
     public int Levels { get; private set; }
+
+    public CellNeighbourhood Neighbourhood { get; private set; }
 
     private int[,] Data;
 
@@ -69,7 +78,12 @@ namespace Defect
               if (Data[Up(y, Height), x] == nextLevel
                  || Data[Down(y, Height), x] == nextLevel
                  || Data[y, Up(x, Width)] == nextLevel
-                 || Data[y, Down(x, Width)] == nextLevel) {
+                 || Data[y, Down(x, Width)] == nextLevel
+                 || (Neighbourhood == CellNeighbourhood.Moore
+                     && (Data[Up(y, Height), Up(x, Width)] == nextLevel
+                         || Data[Down(y, Height), Up(x, Width)] == nextLevel
+                         || Data[Up(y, Height), Down(x, Width)] == nextLevel
+                         || Data[Down(y, Height), Down(x, Width)] == nextLevel))) {
                 NewData[y, x] = nextLevel;
                 ++changed_here;
               }

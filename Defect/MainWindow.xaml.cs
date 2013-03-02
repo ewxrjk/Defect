@@ -29,6 +29,7 @@ namespace Defect
       ArenaHeight = 512;
       Scale = 1;
       SpeedSlider.Value = Math.Floor((SpeedSlider.Minimum + SpeedSlider.Maximum) / 4);
+      Neighbourhood = CellNeighbourhood.VonNeumann;
       Reset();  // draw an initial random image
       EnableDisable();
     }
@@ -54,6 +55,11 @@ namespace Defect
     /// Time between steps in seconds
     /// </summary>
     public double StepInterval { get; set; }
+
+    /// <summary>
+    /// Cell neighbourhood type
+    /// </summary>
+    public CellNeighbourhood Neighbourhood { get; set; }
 
     /// <summary>
     /// Display scale
@@ -239,7 +245,7 @@ namespace Defect
     private void Reset() {
       // If the worker is going, cancel it
       Stop(null, null);
-      Arena = new DefectGrid(ArenaWidth, ArenaHeight, ArenaLevels);
+      Arena = new DefectGrid(ArenaWidth, ArenaHeight, ArenaLevels, Neighbourhood);
       Output.Width = ArenaWidth * Scale;
       Output.Height = ArenaHeight * Scale;
       InitializeBitmap();

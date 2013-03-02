@@ -8,8 +8,38 @@
         WindowStartupLocation="CenterOwner"
         Height="auto"
         Width="auto">
+  <Window.Resources>
+    <Canvas x:Key="CellNeighbourhood.Moore" Width="26" Height="26">
+      <Canvas>
+        <Canvas.RenderTransform>
+          <TranslateTransform X="0" Y="-6"/>
+        </Canvas.RenderTransform>
+      </Canvas>
+      <Rectangle Canvas.Left="2" Canvas.Top="2" Width="6" Height="6" RadiusY="1.7382812e-005" RadiusX="1.7382812e-005" Fill="#FF000000"/>
+      <Rectangle Canvas.Left="10" Canvas.Top="2" Width="6" Height="6" RadiusY="1.7382812e-005" RadiusX="1.7382812e-005" Fill="#FF000000"/>
+      <Rectangle Canvas.Left="18" Canvas.Top="2" Width="6" Height="6" RadiusY="1.7382812e-005" RadiusX="1.7382812e-005" Fill="#FF000000"/>
+      <Rectangle Canvas.Left="18" Canvas.Top="10" Width="6" Height="6" RadiusY="1.7382812e-005" RadiusX="1.7382812e-005" Fill="#FF000000"/>
+      <Rectangle Canvas.Left="18" Canvas.Top="18" Width="6" Height="6" RadiusY="1.7382812e-005" RadiusX="1.7382812e-005" Fill="#FF000000"/>
+      <Rectangle Canvas.Left="10" Canvas.Top="18" Width="6" Height="6" RadiusY="1.7382812e-005" RadiusX="1.7382812e-005" Fill="#FF000000"/>
+      <Rectangle Canvas.Left="2" Canvas.Top="18" Width="6" Height="6" RadiusY="1.7382812e-005" RadiusX="1.7382812e-005" Fill="#FF000000"/>
+      <Rectangle Canvas.Left="2" Canvas.Top="10" Width="6" Height="6" Fill="#FF000000"/>
+    </Canvas>
+    <Canvas x:Key="CellNeighbourhood.VonNeumann" Width="26" Height="26">
+      <Canvas>
+        <Canvas.RenderTransform>
+          <TranslateTransform X="0" Y="-6"/>
+        </Canvas.RenderTransform>
+      </Canvas>
+      <Rectangle Canvas.Left="10" Canvas.Top="2" Width="6" Height="6" RadiusY="1.7382812e-005" RadiusX="1.7382812e-005" Fill="#FF000000"/>
+      <Rectangle Canvas.Left="18" Canvas.Top="10" Width="6" Height="6" RadiusY="1.7382812e-005" RadiusX="1.7382812e-005" Fill="#FF000000"/>
+      <Rectangle Canvas.Left="10" Canvas.Top="18" Width="6" Height="6" RadiusY="1.7382812e-005" RadiusX="1.7382812e-005" Fill="#FF000000"/>
+      <Rectangle Canvas.Left="2" Canvas.Top="10" Width="6" Height="6" Fill="#FF000000"/>
+    </Canvas>
+
+  </Window.Resources>
   <Grid Margin="2">
     <Grid.RowDefinitions>
+      <RowDefinition Height="auto"></RowDefinition>
       <RowDefinition Height="auto"></RowDefinition>
       <RowDefinition Height="auto"></RowDefinition>
       <RowDefinition Height="auto"></RowDefinition>
@@ -31,8 +61,11 @@
     <Label Grid.Row="2" Grid.Column="0" Target="{Binding ElementName=EnterStates}">_States</Label>
     <TextBox Grid.Row="2" Grid.Column="1" Name="EnterStates" TextChanged="States_Changed" MinWidth="64"></TextBox>
     <Label Grid.Row="2" Grid.Column="2" Name="EnterStatesError" Foreground="Red" Visibility="Hidden" MinWidth="136"></Label>
+
+    <Label Grid.Row="3" Grid.Column="0" Target="{Binding ElementName=EnterNeighbourhood}">_Neighbourhood</Label>
+    <ComboBox Grid.Row="3" Grid.Column="1" Name="EnterNeighbourhood" SelectionChanged="Neighbourhood_Changed" MinWidth="144"/>
     
-    <StackPanel Grid.Row="3" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="Right">
+    <StackPanel Grid.Row="4" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="Right">
       <Button Name="OKButton" Click="OK" Width="64" IsDefault="True" Margin="2">OK</Button>
       <Button Name="CancelButton" Click="Cancel" Width="64" Margin="2">Cancel</Button>
     </StackPanel>

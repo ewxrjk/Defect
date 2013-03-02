@@ -23,6 +23,14 @@ namespace Defect
     {
       InitializeComponent();
       Outcome = Outcomes.Cancelled;
+      foreach (string name in Enum.GetNames(typeof(CellNeighbourhood))) {
+        object icon = this.Resources[string.Format("CellNeighbourhood.{0}", name)];
+        StackPanel stackPanel = new StackPanel() { Orientation = Orientation.Horizontal };
+        stackPanel.Children.Add(icon as UIElement);
+        stackPanel.Children.Add(new Label() { Content = name });
+        ComboBoxItem comboBoxItem = new ComboBoxItem() { Content = stackPanel, Name = name };
+        EnterNeighbourhood.Items.Add(comboBoxItem);
+      }
     }
 
     #region Interface
@@ -87,6 +95,7 @@ namespace Defect
       EnterWidth.Text = ParentMainWindow.ArenaWidth.ToString();
       EnterHeight.Text = ParentMainWindow.ArenaHeight.ToString();
       EnterStates.Text = ParentMainWindow.ArenaLevels.ToString();
+      EnterNeighbourhood.SelectedItem = EnterNeighbourhood.Items.Cast<ComboBoxItem>().First(item => item.Name == ParentMainWindow.Neighbourhood.ToString());
     }
 
     private void Changed(TextBox inputTextBlock, int min, int max, Label errorLabel, Action<int> setter, uint controlbit)
@@ -130,6 +139,11 @@ namespace Defect
     private void States_Changed(object sender, TextChangedEventArgs e)
     {
       Changed(EnterStates, 2, 256, EnterStatesError, (int value) => { ParentMainWindow.ArenaLevels = value; }, 4);
+    }
+
+    private void Neighbourhood_Changed(object sender, SelectionChangedEventArgs e)
+    {
+      ParentMainWindow.Neighbourhood = (CellNeighbourhood)Enum.Parse(typeof(CellNeighbourhood), ((ComboBoxItem)EnterNeighbourhood.SelectedItem).Name);
     }
 
     #endregion
