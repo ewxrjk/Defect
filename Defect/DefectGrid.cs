@@ -65,14 +65,14 @@ namespace Defect
       // 1 greater (mod Levels) than they are in value, they
       // change to that value.
       int changed = 0;
-      int left = Height / ChunkSize;
-      for (int y0 = 0; y0 < Height; y0 += ChunkSize) {
-        int y0_rebound = y0;
+      int step = Environment.ProcessorCount;
+      int left = step;
+      for (int n = 0; n < step; ++n) {
+        int n_rebound = n;
         ThreadPool.QueueUserWorkItem((object unused) =>
         {
-          int limit = Math.Min(Height, y0_rebound + ChunkSize);
           int changed_here = 0;
-          for (int y = y0_rebound; y < limit; ++y) {
+          for (int y = n_rebound; y < Height; y += step) {
             for (int x = 0; x < Width; ++x) {
               int nextLevel = Up(Data[y, x], Levels);
               if (Data[Up(y, Height), x] == nextLevel
