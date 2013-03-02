@@ -33,8 +33,8 @@ namespace Defect
       InitializeComponent();
       if (creator == null) {
         ArenaLevels = 16;
-        ArenaWidth = 512;
-        ArenaHeight = 512;
+        ArenaWidth = 256;
+        ArenaHeight = 256;
         Scale = 1;
         SpeedSlider.Value = Math.Floor((SpeedSlider.Minimum + SpeedSlider.Maximum) / 4);
         Neighbourhood = CellNeighbourhood.VonNeumann;
