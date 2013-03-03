@@ -106,6 +106,11 @@ namespace Defect
     private uint[] Palette;
 
     /// <summary>
+    /// Palette object for GIF images
+    /// </summary>
+    private GIF.ColorTable GIFPalette;
+
+    /// <summary>
     /// Array for rendering
     /// </summary>
     private uint[] ColorData;
@@ -130,6 +135,31 @@ namespace Defect
     /// </summary>
     private Thread BackgroundThread = null;
 
+    /// <summary>
+    /// The base filename to record GIFs to
+    /// </summary>
+    private string RecordFilename = null;
+
+    /// <summary>
+    /// The current recording stream
+    /// </summary>
+    private FileStream RecordStream = null;
+
+    /// <summary>
+    /// Encoder for current recording stream
+    /// </summary>
+    private GIF RecordContext = null;
+
+    /// <summary>
+    /// Sequence number for disambiguating recording filenames
+    /// </summary>
+    private int RecordSequence = 1;
+
+    /// <summary>
+    /// Pixel data for recording
+    /// </summary>
+    private byte[] RecordPixels = null;
+
     #endregion
 
     #region Window Furniture
@@ -137,6 +167,9 @@ namespace Defect
     private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
     {
       StopExecuted(null, null);
+      if (RecordStream != null) {
+        ShutdownRecording();
+      }
     }
 
     #endregion
@@ -173,6 +206,7 @@ namespace Defect
       OptionsCommand.InputGestures.Add(new KeyGesture(Key.O, ModifierKeys.Control));
       ApplicationCommands.Close.InputGestures.Add(new KeyGesture(Key.W, ModifierKeys.Control));
       ExitCommand.InputGestures.Add(new KeyGesture(Key.Q, ModifierKeys.Control));
+      RecordToCommand.InputGestures.Add(new KeyGesture(Key.R, ModifierKeys.Control));
     }
 
     public static RoutedCommand GoCommand = new RoutedCommand();
@@ -184,6 +218,8 @@ namespace Defect
     public static RoutedCommand OptionsCommand = new RoutedCommand();
 
     public static RoutedCommand ExitCommand = new RoutedCommand();
+
+    public static RoutedCommand RecordToCommand = new RoutedCommand();
 
     #endregion
 
@@ -297,6 +333,25 @@ namespace Defect
       }
     }
 
+    private void RecordToExecuted(object sender, ExecutedRoutedEventArgs e)
+    {
+      SaveFileDialog saveFileDialog = new SaveFileDialog()
+      {
+        DereferenceLinks = true,
+        Title = "Record image image",
+        Filter = "GIF files|*.gif",
+        DefaultExt = ".gif",
+        OverwritePrompt = false,
+      };
+      bool? result = saveFileDialog.ShowDialog(this);
+      if (result == true) {
+        RecordFilename = saveFileDialog.FileName;
+        if (RecordContext == null) {
+          InitializeRecording();
+        }
+      }
+    }
+
     private void ExitExecuted(object sender, ExecutedRoutedEventArgs e)
     {
       Environment.Exit(0);
@@ -309,6 +364,9 @@ namespace Defect
     private void Reset() {
       // If the worker is going, cancel it
       StopExecuted(null, null);
+      if (RecordStream != null) {
+        ShutdownRecording();
+      }
       Arena = new DefectGrid(ArenaWidth, ArenaHeight, ArenaLevels, Neighbourhood);
       Output.Width = ArenaWidth * Scale;
       Output.Height = ArenaHeight * Scale;
@@ -319,6 +377,9 @@ namespace Defect
       UpdateBitmap();
       Output.Source = Bitmap;
       Status.Text = "Ready";
+      if (RecordFilename != null) {
+        InitializeRecording();
+      }
     }
 
     /// <summary>
@@ -353,14 +414,58 @@ namespace Defect
     private void InitializePalette()
     {
       Palette = new uint[ArenaLevels];
+      GIFPalette = new GIF.ColorTable()
+      {
+        Table = new System.Drawing.Color[ArenaLevels],
+        BackgroundColorIndex = ArenaLevels,
+      };
       for (int level = 0; level < ArenaLevels; ++level) {
         double h = 360.0 * level / ArenaLevels, s = 1.0, v = 1.0;
         double r, g, b;
         Tools.HsvToRgb(h, s, v, out r, out g, out b);
-        uint ri = (uint)(255 * r);
-        uint gi = (uint)(255 * g);
-        uint bi = (uint)(255 * b);
-        Palette[level] = ri + 256u * gi + 65536u * bi + 16777216u * 255u;
+        int ri = (int)(255 * r);
+        int gi = (int)(255 * g);
+        int bi = (int)(255 * b);
+        Palette[level] = (uint)(ri + 256 * gi + 65536 * bi) + 16777216u * 255u;
+        GIFPalette.Table[level] = System.Drawing.Color.FromArgb(ri, gi, bi);
+      }
+    }
+
+    private void InitializeRecording ()
+    {
+      string path = FindUniqueFilename();
+      RecordStream = new FileStream(path, FileMode.Create); // TODO errors
+      RecordContext = new GIF()
+      {
+        Output = RecordStream,
+        ScreenWidth = Arena.Width * Scale,
+        ScreenHeight = Arena.Height * Scale,
+        GlobalColorTable = GIFPalette,
+      };
+      RecordPixels = new byte[Arena.Width * Arena.Height * Scale * Scale];
+      RecordContext.Begin();
+    }
+
+    private void ShutdownRecording()
+    {
+      RecordContext.End();
+      RecordStream.Flush(); // TODO errors
+      RecordStream.Dispose();
+      RecordStream = null;
+      RecordContext = null;
+    }
+
+    private string FindUniqueFilename()
+    {
+      for (; ; ) {
+        string path = string.Format("{0}{1}{2}",
+                             System.IO.Path.GetFileNameWithoutExtension(RecordFilename),
+                             RecordSequence,
+                             System.IO.Path.GetExtension(RecordFilename));
+        if (!File.Exists(path)) {
+          return path;
+        }
+        ++RecordSequence;
       }
     }
 
@@ -418,10 +523,23 @@ namespace Defect
             {
               Status.Text = string.Format("{0} cells changed; {1}ms", changed, perf.TotalMilliseconds);
               UpdateBitmap();
+              if (RecordContext != null) {
+                // TODO we could set all the pixels that haven't changed to transparent
+                // and save a lot of space in early frames
+                Arena.Render(RecordPixels, Scale); // TODO Scale is dubiously appropriate here
+                RecordContext.WriteImage(new GIF.Image()
+                {
+                  ImageData = RecordPixels,
+                  DelayCentiSeconds = 20,
+                }); // TODO errors
+              }
               if (changed == 0) {
                 // Stuck!
                 System.Media.SystemSounds.Exclamation.Play();
                 StopExecuted(null, null);
+                if (RecordContext != null) {
+                  ShutdownRecording(); // TODO errors
+                }
               }
             });
           }

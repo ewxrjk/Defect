@@ -41,6 +41,7 @@
     <CommandBinding Command="{x:Static local:MainWindow.StopGoCommand}" Executed="StopGoExecuted"/>
     <CommandBinding Command="{x:Static local:MainWindow.ExitCommand}" Executed="ExitExecuted"/>
     <CommandBinding Command="ApplicationCommands.SaveAs" Executed="SaveAsExecuted"/>
+    <CommandBinding Command="{x:Static local:MainWindow.RecordToCommand}" Executed="RecordToExecuted"/>
   </Window.CommandBindings>
   <Grid>
     <Grid.RowDefinitions>
@@ -53,6 +54,7 @@
       <MenuItem Header="_File">
         <MenuItem Header="New Window" Command="ApplicationCommands.New"></MenuItem>
         <MenuItem Header="Save as..." Command="ApplicationCommands.SaveAs"></MenuItem>
+        <MenuItem Header="Record to..." Command="{x:Static local:MainWindow.RecordToCommand}"></MenuItem>
         <MenuItem Header="Close" Command="ApplicationCommands.Close"></MenuItem>
         <Separator></Separator>
         <MenuItem Header="Exit" Command="{x:Static local:MainWindow.ExitCommand}"></MenuItem>
