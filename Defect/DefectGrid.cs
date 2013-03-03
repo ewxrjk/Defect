@@ -144,6 +144,25 @@ namespace Defect
     }
 
     /// <summary>
+    /// Write pixel data
+    /// </summary>
+    /// <param name="pixelData">Destination for pixel data</param>
+    /// <param name="scale"></param>
+    public void Render(byte[] pixelData, int scale)
+    {
+      int n = 0;
+      for (int y = 0; y < Height; ++y) {
+        for (int ys = 0; ys < scale; ++ys) {
+          for (int x = 0; x < Width; ++x) {
+            for (int xs = 0; xs < scale; ++xs) {
+              pixelData[n++] = Data[y, x];
+            }
+          }
+        }
+      }
+    }
+
+    /// <summary>
     /// Return (n+1) mod m
     /// </summary>
     /// <param name="n"></param>
