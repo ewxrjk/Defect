@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Windows.Media.Imaging;
 
 namespace Tests
 {
@@ -40,6 +41,17 @@ namespace Tests
       Assert.AreEqual(1.0, r, "h=300 rgb={0} {1} {2}", r, g, b);
       Assert.AreEqual(0.0, g, "h=300 rgb={0} {1} {2}", r, g, b);
       Assert.AreEqual(1.0, b, "h=300 rgb={0} {1} {2}", r, g, b);
+    }
+
+    [TestMethod]
+    public void BitmapExtensionsTest()
+    {
+      foreach(Type type in Defect.Tools.ImageCodecs) {
+        BitmapEncoder encoder = Defect.Tools.MakeEncoder(type);
+        foreach (string extension in Defect.Tools.ExtensionsFor(encoder)) {
+          Assert.AreEqual('.', extension[0]);
+        }
+      }
     }
   }
 }

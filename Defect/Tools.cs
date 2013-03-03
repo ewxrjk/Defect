@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Media.Imaging;
+using System.IO;
+using System.Reflection;
 
 namespace Defect
 {
@@ -57,6 +60,57 @@ namespace Defect
       r = r1 + m;
       g = g1 + m;
       b = b1 + m;
+    }
+    
+    /// <summary>
+    /// All available image codecs
+    /// </summary>
+    public static IEnumerable<Type> ImageCodecs = from type in typeof(BitmapEncoder).Assembly.GetExportedTypes()
+                                                  where type.IsSubclassOf(typeof(BitmapEncoder))
+                                                  select type;
+
+    /// <summary>
+    /// All known image file extensions
+    /// </summary>
+    public static string BitmapExtensions = string.Join(";",
+                                                        from type in ImageCodecs
+                                                        from extension in ExtensionsFor(MakeEncoder(type))
+                                                        select "*" + extension);
+
+    /// <summary>
+    /// Construct a bitmap encoder
+    /// </summary>
+    /// <param name="type"></param>
+    /// <returns></returns>
+    public static BitmapEncoder MakeEncoder(Type type)
+    {
+      return (BitmapEncoder)Activator.CreateInstance(type);
+    }
+
+    /// <summary>
+    /// Return the list of extensions for a bitmap encoder
+    /// </summary>
+    /// <param name="encoder"></param>
+    /// <returns>List of extensions of the form .jpeg etc.</returns>
+    public static IEnumerable<string> ExtensionsFor(BitmapEncoder encoder) {
+      return encoder.CodecInfo.FileExtensions.Split(',');
+    }
+
+    /// <summary>
+    /// Identify the appropriate bitmap encoder for a filename
+    /// </summary>
+    /// <param name="path">A filename</param>
+    /// <returns>A <code>BitmapEncoder</code></returns>
+    public static BitmapEncoder FindBitmapEncoder(string path)
+    {
+      string extension = Path.GetExtension(path).ToLowerInvariant();
+      foreach (Type type in ImageCodecs) {
+        BitmapEncoder encoder = MakeEncoder(type);
+        if (ExtensionsFor(encoder).Contains(extension)) {
+          return encoder;
+        }
+      }
+      throw new ApplicationException(string.Format("Unknown file type *{0}", extension));
     }
   }
 }

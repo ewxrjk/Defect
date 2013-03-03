@@ -13,6 +13,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Threading;
+using System.IO;
+using Microsoft.Win32;
 
 namespace Defect
 {
@@ -255,6 +257,44 @@ namespace Defect
       };
       options.CancelButton.Visibility = Visibility.Collapsed;
       options.ShowDialog();
+    }
+
+    private void SaveAsExecuted(object sender, ExecutedRoutedEventArgs e)
+    {
+      BitmapFrame frame;
+      lock (Lock) {
+        UpdateColorData();
+        UpdateBitmap();
+        frame = BitmapFrame.Create(Bitmap.Clone());
+      }
+      SaveFileDialog saveFileDialog = new SaveFileDialog()
+      {
+        DereferenceLinks = true,
+        Title = "Save image",
+        Filter = "Image files|" + Tools.BitmapExtensions,
+        DefaultExt = ".png",
+      };
+      bool? result = saveFileDialog.ShowDialog(this);
+      if (result == true) {
+        try {
+          BitmapEncoder encoder = Tools.FindBitmapEncoder(saveFileDialog.FileName);
+          if (encoder is JpegBitmapEncoder) {
+            ((JpegBitmapEncoder)encoder).QualityLevel = 90;
+          }
+          encoder.Frames = new List<BitmapFrame>() { frame };
+          using (FileStream output = new FileStream(saveFileDialog.FileName, FileMode.Create)) {
+            encoder.Save(output);
+            output.Flush();
+          }
+        }
+        catch (Exception ex) {
+          MessageBox.Show(String.Format("Saving {0}: {1}",
+                                        saveFileDialog.FileName, ex.Message),
+                          "Error saving image",
+                          MessageBoxButton.OK,
+                          MessageBoxImage.Error);
+        }
+      }
     }
 
     private void ExitExecuted(object sender, ExecutedRoutedEventArgs e)
