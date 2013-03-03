@@ -81,9 +81,11 @@ namespace Defect
     public void FlushBytes()
     {
       //Console.WriteLine("  FlushBytes {0}", index);
-      Output.WriteByte((byte)bufferPosition);
-      Output.Write(buffer, 0, bufferPosition);
-      bufferPosition = 0;
+      if (bufferPosition > 0) {
+        Output.WriteByte((byte)bufferPosition);
+        Output.Write(buffer, 0, bufferPosition);
+        bufferPosition = 0;
+      }
     }
 
     /// <summary>
@@ -95,7 +97,6 @@ namespace Defect
     /// Position used within output buffer
     /// </summary>
     private int bufferPosition = 0;
-
 
   }
 }

@@ -20,8 +20,7 @@ namespace Tests
         bw.FlushBits();
         bw.FlushBytes();
         byte[] bytes = ms.ToArray();
-        Assert.AreEqual(1, bytes.Length);
-        Assert.AreEqual(0, bytes[0]);
+        Assert.AreEqual(0, bytes.Length);
       }
     }
 
