@@ -59,6 +59,7 @@
     <Compile Include="Options.xaml.cs">
       <DependentUpon>Options.xaml</DependentUpon>
     </Compile>
+    <Compile Include="PrefixTable.cs" />
     <Compile Include="Tools.cs" />
     <Page Include="About.xaml">
       <SubType>Designer</SubType>
