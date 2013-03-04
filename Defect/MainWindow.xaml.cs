@@ -516,13 +516,6 @@ namespace Defect
               render = true;
               last = now;
               waitTime = StepInterval;
-            }
-          }
-          if (render) {
-            Dispatcher.InvokeAsync(() =>
-            {
-              Status.Text = string.Format("{0} cells changed; {1}ms", changed, perf.TotalMilliseconds);
-              UpdateBitmap();
               if (RecordContext != null) {
                 // TODO we could set all the pixels that haven't changed to transparent
                 // and save a lot of space in early frames
@@ -533,6 +526,13 @@ namespace Defect
                   DelayCentiSeconds = 20,
                 }); // TODO errors
               }
+            }
+          }
+          if (render) {
+            Dispatcher.InvokeAsync(() =>
+            {
+              Status.Text = string.Format("{0} cells changed; {1}ms", changed, perf.TotalMilliseconds);
+              UpdateBitmap();
               if (changed == 0) {
                 // Stuck!
                 System.Media.SystemSounds.Exclamation.Play();
