@@ -1,0 +1,139 @@
+﻿using System;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.IO;
+using Defect;
+using System.Drawing;
+
+namespace Tests
+{
+  [TestClass]
+  public class GIFTests
+  {
+    [TestMethod]
+    public void EmptyGifTest()
+    {
+      using (MemoryStream stream = new MemoryStream()) {
+        GIF gif = new GIF()
+        {
+          Output = stream,
+          ScreenWidth = 0,
+          ScreenHeight = 0,
+          GlobalColorTable = new GIF.ColorTable()
+          {
+            Table = new Color[2] { Color.White, Color.Black }
+          }
+        };
+        gif.Begin();
+        gif.WriteImage(new GIF.Image()
+        {
+          ImageData = new byte[0],
+        });
+        gif.End();
+        int codeSize = 2;
+        int clear = 1 << codeSize;
+        int end = 1 + clear;
+        TestUtils.AreEqual(new byte[] {
+          // 0: Signature
+          (byte)'G', (byte)'I', (byte)'F',(byte)'8', (byte)'9', (byte)'a',
+          // 6: Logical screen descriptor
+          0, 0,
+          0, 0,
+          0xF0,
+          0,
+          49,
+          // 13: Global Color Table
+          0xFF, 0xFF, 0xFF,
+          0, 0, 0,
+          // 19: Graphic control extension
+          0x21, 0xF9, 0x04,
+          1 << 2, 0, 0, 0,
+          0,
+          // 27: Image descriptor
+          0x2C,
+          0, 0,
+          0, 0,
+          0, 0,
+          0, 0,
+          0,
+          // 37: Image data
+          // 37: Minimum code size
+          2,
+          // 38: Data block
+          1,
+          (byte)(clear
+                 | (end << 3)),
+          // 40: Block terminator
+          0,
+          // 41: Trailer
+          0x3B
+        }, stream.ToArray(), "EmptyGifTest");
+      }
+    }
+
+    [TestMethod]
+    public void TinyGifTest()
+    {
+      using (MemoryStream stream = new MemoryStream()) {
+        GIF gif = new GIF()
+        {
+          Output = stream,
+          ScreenWidth = 1,
+          ScreenHeight = 1,
+          GlobalColorTable = new GIF.ColorTable()
+          {
+            Table = new Color[2] { Color.White, Color.Black }
+          }
+        };
+        gif.Begin();
+        gif.WriteImage(new GIF.Image()
+        {
+          ImageData = new byte[] { 0 },
+        });
+        gif.End();
+        int codeSize = 2;
+        int clear = 1 << codeSize;
+        int end = 1 + clear;
+        byte[] got = stream.ToArray();
+        byte[] expected = new byte[] {
+          // 0: Signature
+          (byte)'G', (byte)'I', (byte)'F',(byte)'8', (byte)'9', (byte)'a',
+          // 6: Logical screen descriptor
+          1, 0,
+          1, 0,
+          0xF0,
+          0,
+          49,
+          // 13: Global Color Table
+          0xFF, 0xFF, 0xFF,
+          0, 0, 0,
+          // 19: Graphic control extension
+          0x21, 0xF9, 0x04,
+          1 << 2, 0, 0, 0,
+          0,
+          // 27: Image descriptor
+          0x2C,
+          0, 0,
+          0, 0,
+          1, 0,
+          1, 0,
+          0,
+          // 37: Image data
+          // 37: Minimum code size
+          2,
+          // 38: Data block
+          2,
+          (byte)(clear
+                 | 0 << 3
+                 | (end << 6)),
+          (byte)(end >> 2),
+          // 41: Block terminator
+          0,
+          // 42: Trailer
+          0x3B
+        };
+        TestUtils.AreEqual(expected, got, "TinyGifTest");
+      }
+    }
+
+  }
+}
