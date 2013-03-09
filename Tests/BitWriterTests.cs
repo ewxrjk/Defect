@@ -1,6 +1,5 @@
-﻿using System;
+﻿using Defect;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Defect;
 using System.IO;
 
 namespace Tests
