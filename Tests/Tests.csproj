@@ -62,6 +62,10 @@
     <Compile Include="PrefixTableTests.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\DefectLib\DefectLib.csproj">
+      <Project>{15f62b32-142b-4095-af0c-622ef236c361}</Project>
+      <Name>DefectLib</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Defect\Defect.csproj">
       <Project>{f3c0c7a5-728b-4bce-af61-a27a934e23e3}</Project>
       <Name>Defect</Name>

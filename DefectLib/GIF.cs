@@ -20,6 +20,7 @@ namespace Defect
       ColorResolution = 8;
       GlobalColorTable = null;
       PixelAspectRatio = 1;
+      Debug = false;
     }
 
     #region Subclasses
@@ -219,6 +220,11 @@ namespace Defect
     /// <remarks>The default value is <code>null</code>.</remarks>
     public ColorTable GlobalColorTable { get; set; }
 
+    /// <summary>
+    /// Whether to issue debug messages
+    /// </summary>
+    public bool Debug { get; set; }
+
     #endregion
 
     #region Writing Images
@@ -269,18 +275,21 @@ namespace Defect
     private void WriteString(string s)
     {
       foreach (char c in s) {
-        Output.WriteByte((byte)c);
+        WriteByte((byte)c);
       }
     }
 
     private void WriteByte(byte b)
     {
+      if (Debug) {
+        Console.Error.WriteLine("   byte: {0:X2}", b);
+      }
       Output.WriteByte(b);
     }
 
     private void WriteByte(int b)
     {
-      Output.WriteByte((byte)b);
+      WriteByte((byte)b);
     }
 
     private void WriteShort(int n)
@@ -295,11 +304,17 @@ namespace Defect
 
     void WriteVersion()
     {
+      if (Debug) {
+        Console.Error.WriteLine("Writing signature");
+      }
       WriteString("GIF89a");
     }
 
     private void WriteLogicalScreenDescriptor()
     {
+      if (Debug) {
+        Console.Error.WriteLine("Writing logical screen descriptor");
+      }
       WriteShort(ScreenWidth);
       WriteShort(ScreenHeight);
       int packedFields = 0;
@@ -343,6 +358,9 @@ namespace Defect
 
     private void WriteGraphicControlExtension(Image image)
     {
+      if (Debug) {
+        Console.Error.WriteLine("Writing graphic control extension");
+      }
       WriteByte(0x21);
       WriteByte(0xF9);
       WriteByte(0x04);
@@ -365,6 +383,9 @@ namespace Defect
 
     private void WriteImageDescriptor(Image image)
     {
+      if (Debug) {
+        Console.Error.WriteLine("Writing image descriptor");
+      }
       WriteByte(0x2C);
       WriteShort(image.X);
       WriteShort(image.Y);
@@ -387,6 +408,9 @@ namespace Defect
       ColorTable colorTable = image.LocalColorTable ?? GlobalColorTable;
       int colorTableBitSize = colorTable.BitSize();
       int codeSize = (colorTableBitSize == 1 ? 2 : colorTableBitSize);
+      if (Debug) {
+        Console.Error.WriteLine("Writing code size {0} bits", codeSize);
+      }
       WriteByte(codeSize);
       // Initial code length is one more than code size, to accomodate the
       // Clear and End codes.
@@ -394,6 +418,7 @@ namespace Defect
       {
         Output = Output,
         CodeLength = 1 + codeSize,
+        Debug = this.Debug,
       };
       // Initialize the prefix table with matches for all single-unit codes
       PrefixTable prefixes = new PrefixTable();
@@ -404,8 +429,14 @@ namespace Defect
       int nextCode = minCode;
       // Start with a Clear.  (Pointless - the decoder knows perfectly well what
       // the initial state is.)
+      if (Debug) {
+        Console.Error.WriteLine("Bit-writing clear marker {0}", 1 << codeSize);
+      }
       writer.WriteBits(1 << codeSize);
       int pos = 0;
+      if (Debug) {
+        Console.Error.WriteLine("Bit-writing {0} pixels of image data", image.ImageData.Length);
+      }
       while (pos < image.ImageData.Length) {
         // Find the longest known prefix that matches this point in the image data
         int bestLength;
@@ -414,6 +445,9 @@ namespace Defect
         writer.WriteBits(bestCode);
         // Add a new dictionary entry
         if (nextCode < 4096 && pos + bestLength < image.ImageData.Length) {
+          if (Debug) {
+            Console.Error.WriteLine("Define code {0:X} as code {1:X} + byte {2:X2}", nextCode, bestCode, image.ImageData[pos + bestLength]);
+          }
           prefixes.Add(nextCode, bestCode, image.ImageData[pos + bestLength]);
           // Update the output bit size
           if(nextCode >= (1 << writer.CodeLength)) {
@@ -424,15 +458,30 @@ namespace Defect
         pos += bestLength;
       }
       // Finish with an End.  (Also pointless - the decoder knows what size the image data should be.)
+      if (Debug) {
+        Console.Error.WriteLine("Bit-writing end marker {0}", (1 << codeSize) + 1);
+      }
       writer.WriteBits((1 << codeSize) + 1);
+      if (Debug) {
+        Console.Error.WriteLine("Flushing bits");
+      }
       writer.FlushBits();
+      if (Debug) {
+        Console.Error.WriteLine("Flushing bytes");
+      }
       writer.FlushBytes();
       // A zero-sized sub-block terminates.
+      if (Debug) {
+        Console.Error.WriteLine("Writing image terminator");
+      }
       WriteByte(0);
     }
 
     void WriteTrailer()
     {
+      if (Debug) {
+        Console.Error.WriteLine("Writing trailer");
+      }
       WriteByte(0x3B);
     }
 

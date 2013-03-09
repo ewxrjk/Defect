@@ -135,6 +135,7 @@ namespace Tests
         Assert.AreEqual(0x00, bytes[6]);
       }
     }
+
     [TestMethod]
     public void BitWriterWpTest()
     {
@@ -172,5 +173,6 @@ namespace Tests
         Assert.AreEqual(0x01, bytes[11]);
       }
     }
+
   }
 }

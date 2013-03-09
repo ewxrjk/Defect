@@ -57,13 +57,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="BitWriter.cs" />
-    <Compile Include="GIF.cs" />
     <Compile Include="Options.xaml.cs">
       <DependentUpon>Options.xaml</DependentUpon>
     </Compile>
-    <Compile Include="PrefixTable.cs" />
-    <Compile Include="Tools.cs" />
     <Page Include="About.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -118,6 +114,12 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Defect.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DefectLib\DefectLib.csproj">
+      <Project>{15f62b32-142b-4095-af0c-622ef236c361}</Project>
+      <Name>DefectLib</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
