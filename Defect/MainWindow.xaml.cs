@@ -450,6 +450,9 @@ namespace Defect
 
     private string FindUniqueFilename()
     {
+      if (!File.Exists(RecordFilename)) {
+        return RecordFilename;
+      }
       for (; ; ) {
         string path = string.Format("{0}{1}{2}",
                              System.IO.Path.GetFileNameWithoutExtension(RecordFilename),
