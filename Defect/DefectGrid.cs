@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 using System.Threading;
 
 namespace Defect
@@ -21,7 +22,7 @@ namespace Defect
     Moore,
   }
 
-  public class DefectGrid
+  public class DefectGrid: IDisposable
   {
     /// <summary>
     /// Construct a new defect array of given dimensions
@@ -42,13 +43,10 @@ namespace Defect
       this.Height = height;
       this.Levels = levels;
       this.Neighbourhood = neighbourhood;
-      this.Data = new byte[height, width];
-      this.NewData = new byte[height, width];
-      for (int y = 0; y < Height; ++y) {
-        for (int x = 0; x < Width; ++x) {
-          this.Data[y, x] = (byte)rng.Next(this.Levels);
-        }
-      }
+      this.Cells = width * height;
+      this.Offset = width * (height + 2);
+      this.Flip = false;
+      InitializeBuffer();
     }
 
     private Random rng = new Random();
@@ -61,62 +59,72 @@ namespace Defect
 
     public CellNeighbourhood Neighbourhood { get; private set; }
 
-    private byte[,] Data;
+    unsafe private byte* Buffer = null;
 
-    private byte[,] NewData;
+    private bool Flip;
+
+    private int Cells;
+
+    private int Offset;
+
+    private unsafe void InitializeBuffer()
+    {
+      this.Buffer = (byte*)Marshal.AllocHGlobal(Width * (Height + 2) * 2);
+      for (int y = 0; y < Height; ++y) {
+        for (int x = 0; x < Width; ++x) {
+          *Location(x, y) = (byte)rng.Next(this.Levels);
+        }
+      }
+    }
+
+    private unsafe byte* Location(int x, int y)
+    {
+      return (byte*)this.Buffer + (Flip ? Offset : 0) + (y + 1) * Width + x;
+    }
+
+    private unsafe void DuplicateRow(byte *data, int yfrom, int yto) {
+      byte* from = data + Width * yfrom;
+      byte* to = data + Width * yto;
+      for (int x = 0; x < Width; ++x) {
+        *to++ = *from++;
+      }
+    }
 
     /// <summary>
     /// Step the array
     /// </summary>
     /// <returns>The number of cells that changed state</returns>
-    public int Step()
+    public unsafe int Step()
     {
+      // Figure out where we are
+      byte* data = (byte*)this.Buffer + (Flip ? Offset : 0);
+      Flip = !Flip;
+      byte* newdata = (byte*)this.Buffer + (Flip ? Offset : 0);
+      // Duplicate the top and bottom rows (makes the asm easier)
+      DuplicateRow(data, 1, Height + 1);
+      DuplicateRow(data, Height, 0);
       // The rule is that if any of a cell's four neighbours are
       // 1 greater (mod Levels) than they are in value, they
       // change to that value.
       int changed = 0;
-      int step = Environment.ProcessorCount;
-      int left = step;
-      for (int n = 0; n < step; ++n) {
-        int n_rebound = n;
-        ThreadPool.QueueUserWorkItem((object unused) =>
-        {
-          int changed_here = 0;
-          for (int y = n_rebound; y < Height; y += step) {
-            for (int x = 0; x < Width; ++x) {
-              byte nextLevel = (byte)Up(Data[y, x], Levels);
-              if (Data[Up(y, Height), x] == nextLevel
-                 || Data[Down(y, Height), x] == nextLevel
-                 || Data[y, Up(x, Width)] == nextLevel
-                 || Data[y, Down(x, Width)] == nextLevel
-                 || (Neighbourhood == CellNeighbourhood.Moore
-                     && (Data[Up(y, Height), Up(x, Width)] == nextLevel
-                         || Data[Down(y, Height), Up(x, Width)] == nextLevel
-                         || Data[Up(y, Height), Down(x, Width)] == nextLevel
-                         || Data[Down(y, Height), Down(x, Width)] == nextLevel))) {
-                NewData[y, x] = nextLevel;
-                ++changed_here;
-              }
-              else {
-                NewData[y, x] = Data[y, x];
-              }
-            }
+      byte* from = data + Width;
+      byte* to = newdata + Width;
+      switch (Neighbourhood) {
+        case CellNeighbourhood.Moore:
+          for (int y = 0; y < Height; ++y) {
+            changed += cyclic_moore(from, to, Width, Levels);
+            from += Width;
+            to += Width;
           }
-          lock (this) {
-            --left;
-            changed += changed_here;
-            Monitor.Pulse(this);
+          break;
+        case CellNeighbourhood.VonNeumann:
+          for (int y = 0; y < Height; ++y) {
+            changed += cyclic_vn(from, to, Width, Levels);
+            from += Width;
+            to += Width;
           }
-        });
+          break;
       }
-      lock (this) {
-        while (left > 0) {
-          Monitor.Wait(this);
-        }
-      }
-      byte[,] tmp = Data;
-      Data = NewData;
-      NewData = tmp;
       return changed;
     }
 
@@ -125,15 +133,17 @@ namespace Defect
     /// </summary>
     /// <param name="colorData">Destination for pixel data.  Format as PixelFormats.Bgr32.</param>
     /// <param name="palette">Palette mapping level data to RGB triples</param>
-    public void Render(uint[] colorData, uint[] palette, int scale)
+    public unsafe void Render(uint[] colorData, uint[] palette, int scale)
     {
       int n = 0;
       for (int y = 0; y < Height; ++y) {
         for (int ys = 0; ys < scale; ++ys) {
+          byte* data = Location(0, y);
           for (int x = 0; x < Width; ++x) {
             for (int xs = 0; xs < scale; ++xs) {
-              colorData[n++] = palette[Data[y, x]];
+              colorData[n++] = palette[*data];
             }
+            ++data;
           }
         }
       }
@@ -144,42 +154,53 @@ namespace Defect
     /// </summary>
     /// <param name="pixelData">Destination for pixel data</param>
     /// <param name="scale"></param>
-    public void Render(byte[] pixelData, int scale)
+    public unsafe void Render(byte[] pixelData, int scale)
     {
       int n = 0;
       for (int y = 0; y < Height; ++y) {
+        byte* data = Location(0, y);
         for (int ys = 0; ys < scale; ++ys) {
           for (int x = 0; x < Width; ++x) {
             for (int xs = 0; xs < scale; ++xs) {
-              pixelData[n++] = Data[y, x];
+              pixelData[n++] = *data;
             }
+            ++data;
           }
         }
       }
     }
 
-    /// <summary>
-    /// Return (n+1) mod m
-    /// </summary>
-    /// <param name="n"></param>
-    /// <param name="m"></param>
-    /// <returns>(n+1) mod m</returns>
-    static public int Up(int n, int m)
+    #region IDisposable
+
+    public void Dispose()
     {
-      ++n;
-      return n < m ? n : 0;
+      Dispose(true);
+      GC.SuppressFinalize(this);
     }
 
-    /// <summary>
-    /// Return (n-1) mod m
-    /// </summary>
-    /// <param name="n"></param>
-    /// <param name="m"></param>
-    /// <returns>(n-1) mod m</returns>
-    static public int Down(int n, int m)
+    protected unsafe virtual void Dispose(bool disposing)
     {
-      --n;
-      return n >= 0 ? n : m - 1;
+      if (Buffer != null) {
+        Marshal.FreeHGlobal((IntPtr)Buffer);
+        Buffer = null;
+      }
     }
+
+    ~DefectGrid() {
+      Dispose(false);
+    }
+
+    #endregion
+
+    #region Native code
+
+    [DllImport("native.dll", CallingConvention = CallingConvention.Cdecl)]
+    private unsafe static extern int cyclic_vn(byte* from, byte* to, int width, int states);
+
+    [DllImport("native.dll", CallingConvention = CallingConvention.Cdecl)]
+    private unsafe static extern int cyclic_moore(byte* from, byte* to, int width, int states);
+
+    #endregion
+
   }
 }

@@ -360,6 +360,9 @@ namespace Defect
       if (RecordStream != null) {
         ShutdownRecording();
       }
+      if (Arena != null) {
+        Arena.Dispose();
+      }
       Arena = new DefectGrid(ArenaWidth, ArenaHeight, ArenaLevels, Neighbourhood);
       Output.Width = ArenaWidth * Scale;
       Output.Height = ArenaHeight * Scale;
