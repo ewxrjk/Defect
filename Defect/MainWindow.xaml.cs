@@ -427,13 +427,14 @@ namespace Defect
     private void InitializeRecording ()
     {
       string path = FindUniqueFilename();
-      RecordStream = new FileStream(path, FileMode.Create); // TODO errors
+      RecordStream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.Read); // TODO errors
       RecordContext = new GIF()
       {
         Output = RecordStream,
         ScreenWidth = Arena.Width * Scale,
         ScreenHeight = Arena.Height * Scale,
         GlobalColorTable = GIFPalette,
+        AutoClose = true,
       };
       RecordPixels = new byte[Arena.Width * Arena.Height * Scale * Scale];
       RecordContext.Begin();
@@ -441,7 +442,6 @@ namespace Defect
 
     private void ShutdownRecording()
     {
-      RecordContext.End();
       RecordStream.Flush(); // TODO errors
       RecordStream.Dispose();
       RecordStream = null;
