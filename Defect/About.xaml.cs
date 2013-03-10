@@ -22,6 +22,7 @@ namespace Defect
     public About()
     {
       InitializeComponent();
+      Bitness.Text = string.Format("{0}-bit version", 8 * IntPtr.Size);
     }
 
     private void OK(object sender, RoutedEventArgs e)
