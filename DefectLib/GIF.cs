@@ -17,6 +17,7 @@ namespace Defect
       GlobalColorTable = null;
       PixelAspectRatio = 1;
       Debug = false;
+      AutoClose = false;
     }
 
     #region Subclasses
@@ -221,6 +222,33 @@ namespace Defect
     /// </summary>
     public bool Debug { get; set; }
 
+    /// <summary>
+    /// Autoclose mode
+    /// </summary>
+    /// <remarks><para>If <code>true</code> then GIFs have the trailer written after each
+    /// frame and removed before the next one.  There is never any need to call
+    /// <code>End()</code>.  The output stream must support seeking and truncation.</para>
+    /// <para>If <code>false</code> then the trailer must be written manually by calling
+    /// <code>End()</code> after the last frame.  This fiddlier but likely to be more efficient,
+    /// and will work on streams that do not support seeking.</para>
+    /// <para>The default is <code>false</code>.</para>
+    /// </remarks>
+    public bool AutoClose { get; set; }
+
+    #endregion
+
+    #region State
+
+    enum State
+    {
+      Initial,
+      Open,
+      Closed,
+      Broken,
+    };
+
+    private State CurrentState = State.Initial;
+
     #endregion
 
     #region Writing Images
@@ -232,11 +260,16 @@ namespace Defect
     /// Do not change them after calling it.</para></remarks>
     public void Begin()
     {
+      if (CurrentState != State.Initial) {
+        throw new InvalidOperationException("GIF.Begin must be called only once");
+      }
+      CurrentState = State.Broken;
       WriteVersion();
       WriteLogicalScreenDescriptor();
       if (GlobalColorTable != null) {
         WriteColorTable(GlobalColorTable);
       }
+      CurrentState = State.Open;
     }
 
     /// <summary>
@@ -246,22 +279,48 @@ namespace Defect
     /// <remarks><code>Begin()</code> must be called first.  This may be called any number of times.</remarks>
     public void WriteImage(Image image)
     {
+      if (AutoClose && CurrentState == State.Closed) {
+        Reopen();
+      }
+      if (CurrentState != State.Open) {
+        throw new InvalidOperationException("GIF.WriteImage must be called after GIF.Begin and before GIF.End");
+      }
+      CurrentState = State.Broken;
       WriteGraphicControlExtension(image);
       WriteImageDescriptor(image);
       if (image.LocalColorTable != null) {
         WriteColorTable(image.LocalColorTable);
       }
       WriteImageData(image);
+      CurrentState = State.Open;
+      if (AutoClose) {
+        End();
+      }
     }
 
     /// <summary>
     /// Complete the GIF
     /// </summary>
     /// <remarks><code>Begin()</code> must be called first.
-    /// This must be called once at the end of the GIF.</remarks>
+    /// This must be called once at the end of the GIF unless auto-close mode is set.</remarks>
     public void End()
     {
+      if (CurrentState != State.Open) {
+        throw new InvalidOperationException("GIF.End must only be called after GIF.Begin");
+      }
+      CurrentState = State.Broken;
       WriteTrailer();
+      CurrentState = State.Closed;
+    }
+
+    public void Reopen()
+    {
+      if (CurrentState != State.Closed) {
+        throw new InvalidOperationException("GIF.Reopen must only be called after GIF.End");
+      }
+      CurrentState = State.Broken;
+      Output.SetLength(Output.Length - 1);
+      CurrentState = State.Open;
     }
 
     #endregion
