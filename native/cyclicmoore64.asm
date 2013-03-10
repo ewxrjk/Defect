@@ -114,13 +114,13 @@ last_nomod:
         je last_store
         cmp al,[rcx+r8]        ; down
         je last_store
-        cmp al,[rcx+1]         ; down right xx
+        cmp al,[rcx+1]         ; down right (wrapped)
         je last_store
         cmp al,[rcx+r11-1]     ; up left
         je last_store
         cmp al,[rcx+r11]       ; up
         je last_store
-        cmp al,[rcx+2*r11+1]   ; up right xx
+        cmp al,[rcx+2*r11+1]   ; up right (wrapped)
         je last_store
         mov al,bl              ; retrieve original
         dec rsi

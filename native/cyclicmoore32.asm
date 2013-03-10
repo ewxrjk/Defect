@@ -35,17 +35,17 @@ cyclic_moore:
         jb first_nomod
         xor bh,bh
 first_nomod:
-        cmp bh,[esi+edx-1]        ; left (wraps)
+        cmp bh,[esi+edx-1]        ; left (wrapped)
         je first_store
         cmp bh,[esi+1]            ; right
         je first_store
-        cmp bh,[esi+2*edx-1]      ; down left (wraps)
+        cmp bh,[esi+2*edx-1]      ; down left (wrapped)
         je first_store
         cmp bh,[esi+edx]          ; down
         je first_store
         cmp bh,[esi+edx+1]        ; down right
         je first_store
-        cmp bh,[esi-1]            ; up left (wraps)
+        cmp bh,[esi-1]            ; up left (wrapped)
         je first_store
         cmp bh,[esi+ebp]          ; up
         je first_store
@@ -99,19 +99,19 @@ main_store:
 last_nomod:
         cmp bh,[esi-1]            ; left
         je last_store
-        cmp bh,[esi+ebp+1]        ; right (wraps)
+        cmp bh,[esi+ebp+1]        ; right (wrapped)
         je last_store
         cmp bh,[esi+edx-1]        ; down left
         je last_store
         cmp bh,[esi+edx]          ; down
         je last_store
-        cmp bh,[esi+1]            ; down right (wraps)
+        cmp bh,[esi+1]            ; down right (wrapped)
         je last_store
         cmp bh,[esi+ebp-1]        ; up left
         je last_store
         cmp bh,[esi+ebp]          ; up
         je last_store
-        cmp bh,[esi+2*ebp+1]      ; up right (wraps)
+        cmp bh,[esi+2*ebp+1]      ; up right (wrapped)
         je last_store
         mov bh,[esi]              ; reload original state
         dec eax
