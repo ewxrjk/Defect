@@ -2,6 +2,9 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Express 2012 for Windows Desktop
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Defect", "Defect\Defect.csproj", "{F3C0C7A5-728B-4BCE-AF61-A27A934E23E3}"
+	ProjectSection(ProjectDependencies) = postProject
+		{56B410DA-2BC0-4476-8D8B-860B0A8C8E9E} = {56B410DA-2BC0-4476-8D8B-860B0A8C8E9E}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{778F6CDC-244D-4156-B71D-A66EE5F27D12}"
 EndProject
