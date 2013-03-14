@@ -11,10 +11,10 @@
         .model flat
         .code
 
-; int cyclic_vn(byte *from, byte *to,
-;               int width, int states);
+; int cyclic_vn_32(byte *from, byte *to,
+;                  int width, int states);
 ; NB we don't handle the first or last row.
-cyclic_vn:
+cyclic_vn_32:
         push ebx
         push esi
         push edi
@@ -100,6 +100,6 @@ last_store:
         pop ebx
         ret
 
-        PUBLIC cyclic_vn
+        PUBLIC cyclic_vn_32
 
         END

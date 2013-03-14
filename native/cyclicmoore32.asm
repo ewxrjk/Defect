@@ -11,10 +11,10 @@
         .model flat
         .code
 
-; int cyclic_moore(byte *from, byte *to,
-;                  int width, int states);
+; int cyclic_moore_32(byte *from, byte *to,
+;                     int width, int states);
 ; NB we don't handle the first or last row.
-cyclic_moore:
+cyclic_moore_32:
         push ebx
         push esi
         push edi
@@ -124,6 +124,6 @@ last_store:
         pop ebx
         ret
 
-        PUBLIC cyclic_moore
+        PUBLIC cyclic_moore_32
 
         END

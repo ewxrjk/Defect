@@ -9,14 +9,3 @@
 #else
 #define NATIVE_API __declspec(dllimport)
 #endif
-
-// This class is exported from the native.dll
-class NATIVE_API Cnative {
-public:
-	Cnative(void);
-	// TODO: add your methods here.
-};
-
-extern NATIVE_API int nnative;
-
-NATIVE_API int fnnative(void);

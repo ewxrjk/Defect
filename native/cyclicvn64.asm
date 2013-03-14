@@ -22,11 +22,11 @@
 
 	
         .code
-; int cyclic_vn(byte *from [rcx], byte *to [rdx],
-;               int width [r8], int states [r9]);
+; int cyclic_vn_64(byte *from [rcx], byte *to [rdx],
+;                  int width [r8], int states [r9]);
 ; Returns change count
 ; NB we don't handle the first or last row.
-cyclic_vn:
+cyclic_vn_64:
         push rsi
         push rbx
         mov r10,r8
@@ -107,6 +107,6 @@ last_store:
         pop rsi
         ret
 
-        PUBLIC cyclic_vn
+        PUBLIC cyclic_vn_64
 
         END
