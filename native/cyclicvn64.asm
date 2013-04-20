@@ -128,7 +128,7 @@ mainloop:
         movdqu xmm4,[rsi+1]       ; right
         movdqu xmm5,[rsi+r8]      ; down
         movdqu xmm6,[rsi+r11]     ; up
- ; find next-state values
+; find next-state values
         movdqu xmm8,xmm0          ; stash originals
         paddb xmm0,xmm1           ; find {cell + 1} x 16
         movdqa xmm9,xmm0
