@@ -100,18 +100,17 @@ namespace Defect
       byte* data = (byte*)this.Buffer + (Flip ? Offset : 0);
       Flip = !Flip;
       byte* newdata = (byte*)this.Buffer + (Flip ? Offset : 0);
-      // Duplicate the top and bottom rows (makes the asm easier)
-      DuplicateRow(data, 1, Height + 1);
-      DuplicateRow(data, Height, 0);
       // The rule is that if any of a cell's four neighbours are
       // 1 greater (mod Levels) than they are in value, they
       // change to that value.
       int changed = 0;
-      byte* from = data + Width;
-      byte* to = newdata + Width;
       switch (Neighbourhood) {
         case CellNeighbourhood.Moore:
           if (IntPtr.Size == 4) {
+            DuplicateRow(data, 1, Height + 1);
+            DuplicateRow(data, Height, 0);
+            byte* from = data + Width;
+            byte* to = newdata + Width;
             for (int y = 0; y < Height; ++y) {
               changed += cyclic_moore_32(from, to, Width, Levels);
               from += Width;
@@ -119,15 +118,15 @@ namespace Defect
             }
           }
           else {
-            for (int y = 0; y < Height; ++y) {
-              changed += cyclic_moore_64(from, to, Width, Levels);
-              from += Width;
-              to += Width;
-            }
+            changed = cyclic_moore_64_all(data, newdata, Width, Levels, Height);
           }
           break;
         case CellNeighbourhood.VonNeumann:
           if (IntPtr.Size == 4) {
+            DuplicateRow(data, 1, Height + 1);
+            DuplicateRow(data, Height, 0);
+            byte* from = data + Width;
+            byte* to = newdata + Width;
             for (int y = 0; y < Height; ++y) {
               changed += cyclic_vn_32(from, to, Width, Levels);
               from += Width;
@@ -135,11 +134,7 @@ namespace Defect
             }
           }
           else {
-            for (int y = 0; y < Height; ++y) {
-              changed += cyclic_vn_64(from, to, Width, Levels);
-              from += Width;
-              to += Width;
-            }
+            changed = cyclic_vn_64_all(data, newdata, Width, Levels, Height);
           }
           break;
       }
@@ -219,10 +214,10 @@ namespace Defect
     private unsafe static extern int cyclic_moore_32(byte* from, byte* to, int width, int states);
 
     [DllImport("native64.dll", CallingConvention = CallingConvention.Cdecl)]
-    private unsafe static extern int cyclic_vn_64(byte* from, byte* to, int width, int states);
+    private unsafe static extern int cyclic_vn_64_all(byte* from, byte* to, int width, int states, int height);
 
     [DllImport("native64.dll", CallingConvention = CallingConvention.Cdecl)]
-    private unsafe static extern int cyclic_moore_64(byte* from, byte* to, int width, int states);
+    private unsafe static extern int cyclic_moore_64_all(byte* from, byte* to, int width, int states, int height);
 
     #endregion
 
