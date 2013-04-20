@@ -145,11 +145,17 @@ mainloop:
         por xmm3,xmm4
         por xmm5,xmm6
         por xmm3,xmm5
+; now:
+;  xmm0 = {cell + 1 (mod states)} x 16
+;  xmm3 = {ff for updated, 00 for unchanged} x 16
+;  xmm8 = {cell} x 16
 ; store {cell+1 (mod states)} x 16 but only where matches were found
         pmovmskb rax,xmm3
-        maskmovdqu xmm0,xmm3
+        pand xmm0,xmm3             ; mask out unchanged
         pxor xmm3,xmm7
-        maskmovdqu xmm8,xmm3
+        pand xmm8,xmm3             ; mask out changed
+        por xmm0,xmm8              ; combine
+        movdqu [rdi],xmm0
 ; count how many changes we made
         popcnt rax,rax
         add rcx,rax
