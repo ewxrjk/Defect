@@ -66,10 +66,11 @@ cyclic_vn_64:
         mov rdi,rdx            ; rdi = destination
         mov r10,r8
         mov r11,r8
-        sub r10,2              ; r10 = cells left
+        dec r10                ; r10 = cells left; account for last cell up front
         neg r11                ; r11 = -width
         xor rcx,rcx            ; rcx = change count
-; first cell
+; first few cells are done individually
+first_loop:
         mov al,[rsi]
         mov bl,al
         inc al
@@ -92,6 +93,10 @@ first_store:
         inc rcx
         inc rsi
         inc rdi
+        dec r10
+        jz last
+        test rsi,0fh
+        jnz first_loop
 ; process 16-byte "paragraphs"
 ; xmm1 = 01 in all byte positions
         pxor xmm0,xmm0
@@ -122,7 +127,7 @@ first_store:
         sub r10,rax               ; length of trailer
         align 16
 mainloop:
-        movdqu xmm0,[rsi]         ; get {cell} x 16
+        movdqa xmm0,[rsi]         ; get {cell} x 16
 ; get 4 x {neighbour} x 16
         movdqu xmm3,[rsi-1]       ; left
         movdqu xmm4,[rsi+1]       ; right
