@@ -237,6 +237,7 @@ cyclic_vn_64_all:
         push r11
         push r12
         push r13
+        cld
         mov rbx,[rsp+96]
         mov r10,rcx            ; from
         mov r11,rdx            ; to
