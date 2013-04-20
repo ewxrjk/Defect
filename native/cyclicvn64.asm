@@ -57,10 +57,11 @@ cyclic_vn_64:
         push rdi
         push rsi
         push rbx
-        sub rsp,16*3
+        sub rsp,16*4
         movdqa [rsp],xmm6
         movdqa [rsp+16],xmm7
         movdqa [rsp+32],xmm8
+        movdqa [rsp+48],xmm9
         mov rsi,rcx            ; rsi = source
         mov rdi,rdx            ; rdi = destination
         mov r10,r8
@@ -218,7 +219,8 @@ last_store:
         movdqa xmm6,[rsp]
         movdqa xmm7,[rsp+16]
         movdqa xmm8,[rsp+32]
-        add rsp,16*3
+        movdqa xmm9,[rsp+48]
+        add rsp,16*4
         pop rbx
         pop rsi
         pop rdi
