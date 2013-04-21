@@ -85,10 +85,10 @@ sse_first_nomod:
         cmp al,[rsi+r11]       ; up
         je sse_first_store
         mov al,bl              ; retrieve original
-        dec rcx
+        dec ecx
 sse_first_store:
         mov [rdi],al
-        inc rcx
+        inc ecx
         inc rsi
         inc rdi
 ; process 16-byte "paragraphs"
@@ -108,12 +108,12 @@ sse_first_store:
 ; We already special-case the last one so that just means we need to drop
 ; 15 from the count.
         mov rdx,r10
-        sub rdx,15                ; can't do the last 15 bytes
+        sub edx,15                ; can't do the last 15 bytes
         jbe sse_trailer
-        shr rdx,4                 ; scale down to dqwords
+        shr edx,4                 ; scale down to dqwords
         je sse_trailer
-        mov rax,rdx
-        shl rax,4                 ; scale back up to bytes
+        mov eax,edx
+        shl eax,4                 ; scale back up to bytes
         sub r10,rax               ; length of trailer
         align 16
 sse_mainloop:
@@ -152,11 +152,11 @@ sse_mainloop:
         por xmm0,xmm3              ; combine
         movdqu [rdi],xmm0
 ; count how many changes we made
-        popcnt rax,rax
-        add rcx,rax
+        popcnt eax,eax
+        add ecx,eax
         add rsi,16
         add rdi,16
-        dec rdx
+        dec edx
         jnz sse_mainloop
 ; do the last r10 bytes individually
 sse_trailer:
@@ -180,7 +180,7 @@ sse_byte_nomod:
         cmp al,[rsi+r11]       ; up
         je sse_byte_store
         mov al,bl              ; retrieve original
-        dec rcx
+        dec ecx
 sse_byte_store:
         mov [rdi],al
         inc rsi
@@ -205,10 +205,10 @@ sse_last_nomod:
         cmp al,[rsi+r11]       ; up
         je sse_last_store
         mov al,bl              ; retrieve original
-        dec rcx
+        dec ecx
 sse_last_store:
         mov [rdi],al
-        inc rcx
+        inc ecx
         mov rax,rcx
         movdqa xmm6,[rsp]
         movdqa xmm8,[rsp+10h]
