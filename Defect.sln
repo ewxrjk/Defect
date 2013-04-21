@@ -13,7 +13,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mkgif", "mkgif\mkgif.csproj
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DefectLib", "DefectLib\DefectLib.csproj", "{15F62B32-142B-4095-AF0C-622EF236C361}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "native64", "native\native.vcxproj", "{56B410DA-2BC0-4476-8D8B-860B0A8C8E9E}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "native64", "native64\native64.vcxproj", "{56B410DA-2BC0-4476-8D8B-860B0A8C8E9E}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "native32", "native32\native32.vcxproj", "{74E55F2A-0541-4E6A-AB0F-202000EF1FF5}"
 EndProject

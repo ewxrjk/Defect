@@ -113,10 +113,10 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <MASM Include="..\native\cyclicmoore32.asm">
+    <MASM Include="cyclicmoore32.asm">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
     </MASM>
-    <MASM Include="..\native\cyclicvn32.asm" />
+    <MASM Include="cyclicvn32.asm" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

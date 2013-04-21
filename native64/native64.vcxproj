@@ -13,7 +13,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{56B410DA-2BC0-4476-8D8B-860B0A8C8E9E}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>native</RootNamespace>
+    <RootNamespace>native64</RootNamespace>
     <ProjectName>native64</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
