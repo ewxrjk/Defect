@@ -57,7 +57,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalOptions>/export:cyclic_vn_32 /export:cyclic_moore_32</AdditionalOptions>
+      <AdditionalOptions>/export:cyclic_vn_32_all /export:cyclic_moore_32_all</AdditionalOptions>
     </Link>
     <PostBuildEvent>
       <Command>copy $(outdir)native32.dll $(solutiondir)\Defect\bin\$(configuration)</Command>
@@ -81,7 +81,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalOptions>/export:cyclic_vn_32 /export:cyclic_moore_32</AdditionalOptions>
+      <AdditionalOptions>/export:cyclic_vn_32_all /export:cyclic_moore_32_all</AdditionalOptions>
     </Link>
     <PostBuildEvent>
       <Command>copy $(outdir)native32.dll $(solutiondir)\Defect\bin\$(configuration)</Command>

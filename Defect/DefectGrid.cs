@@ -122,15 +122,7 @@ namespace Defect
       switch (Neighbourhood) {
         case CellNeighbourhood.Moore:
           if (IntPtr.Size == 4) {
-            DuplicateRow(data, 1, Height + 1);
-            DuplicateRow(data, Height, 0);
-            byte* from = data + Width;
-            byte* to = newdata + Width;
-            for (int y = 0; y < Height; ++y) {
-              changed += cyclic_moore_32(from, to, Width, Levels);
-              from += Width;
-              to += Width;
-            }
+            changed = cyclic_moore_32_all(data, newdata, Width, Levels, Height);
           }
           else {
             changed = cyclic_moore_64_all(data, newdata, Width, Levels, Height);
@@ -138,15 +130,7 @@ namespace Defect
           break;
         case CellNeighbourhood.VonNeumann:
           if (IntPtr.Size == 4) {
-            DuplicateRow(data, 1, Height + 1);
-            DuplicateRow(data, Height, 0);
-            byte* from = data + Width;
-            byte* to = newdata + Width;
-            for (int y = 0; y < Height; ++y) {
-              changed += cyclic_vn_32(from, to, Width, Levels);
-              from += Width;
-              to += Width;
-            }
+            changed = cyclic_vn_32_all(data, newdata, Width, Levels, Height);
           }
           else {
             changed = cyclic_vn_64_all(data, newdata, Width, Levels, Height);
@@ -223,10 +207,10 @@ namespace Defect
     #region Native code
 
     [DllImport("native32.dll", CallingConvention = CallingConvention.Cdecl)]
-    private unsafe static extern int cyclic_vn_32(byte* from, byte* to, int width, int states);
+    private unsafe static extern int cyclic_vn_32_all(byte* from, byte* to, int width, int states, int height);
 
     [DllImport("native32.dll", CallingConvention = CallingConvention.Cdecl)]
-    private unsafe static extern int cyclic_moore_32(byte* from, byte* to, int width, int states);
+    private unsafe static extern int cyclic_moore_32_all(byte* from, byte* to, int width, int states, int height);
 
     [DllImport("native64.dll", CallingConvention = CallingConvention.Cdecl)]
     private unsafe static extern int cyclic_vn_64_all(byte* from, byte* to, int width, int states, int height);

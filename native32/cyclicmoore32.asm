@@ -139,7 +139,63 @@ last_store:
         pop esi
         pop ebx
         ret
+        
+; int cyclic_moore_32_all(byte *from [esp+24h], byte *to [esp+28h],
+;                         int width [esp+2ch], int states [esp+30h],
+;                         int height [esp+34h])
+; Returns change count
+; Buffers must contain two more rows than implied by height!
+cyclic_moore_32_all:
+        cld
+        push ebx
+        push ebp
+        push esi
+        push edi
+        sub esp,10h
+        mov ecx,[esp+2ch]      ; ecx = width
+        mov eax,[esp+34h]
+        mul ecx                ; eax = width * height
+        mov ebp,ecx            ; ebp = width
+; copy the first row to just after the end
+        mov esi,[esp+24h]
+        add esi,ecx            ; esi = initial row
+        lea edi,[esi+eax]      ; edi = post-final row
+        rep movsb
+; copy the final row to just before the beginning
+        mov edi,[esp+24h]      ; edi = pre-initial row
+        lea esi,[edi+eax]      ; esi = final row
+        mov ecx,ebp            ; ecx = width
+        rep movsb
+; set up fixed arguments
+        mov edx,[esp+30h]      ; edx = states
+        mov [esp+08h],ebp      ; width
+        mov [esp+0ch],edx   
+; set up initial values
+        mov esi,[esp+24h]      ; esi = from
+        mov edi,[esp+28h]      ; edi = to
+        mov ebx,[esp+34h]      ; ebx = height
+        add esi,ebp
+        add edi,ebp
+        xor ebp,ebp
+        align 16
+loop_all:
+        mov [esp+00h],esi
+        mov [esp+04h],edi
+        call cyclic_moore_32
+        mov ecx,[esp+2ch]
+        add ebp,eax
+        add esi,ecx
+        add edi,ecx
+        dec ebx
+        jnz loop_all
+        mov eax,ebp
+        add esp,10h
+        pop edi
+        pop esi
+        pop ebp
+        pop ebx
+        ret
 
-        PUBLIC cyclic_moore_32
+        PUBLIC cyclic_moore_32_all
 
         END
