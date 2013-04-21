@@ -40,7 +40,7 @@
 ;   xmm4  smash                      right
 ;   xmm5  smash                      down
 ;   xmm6  preserve                   up
-;   xmm7  preserve                   {FF} x 16
+;   xmm7  preserve
 ;   xmm8  preserve                   stashed cell values
 ;   xmm9  preserve                   overflow mask
 ;   xmm10+ preserve
@@ -57,11 +57,10 @@ cyclic_vn_64_sse:
         push rdi
         push rsi
         push rbx
-        sub rsp,16*4
+        sub rsp,16*3
         movdqa [rsp],xmm6
-        movdqa [rsp+10h],xmm7
-        movdqa [rsp+20h],xmm8
-        movdqa [rsp+30h],xmm9
+        movdqa [rsp+10h],xmm8
+        movdqa [rsp+20h],xmm9
         mov rsi,rcx            ; rsi = source
         mov rdi,rdx            ; rdi = destination
         mov r10,r8
@@ -101,10 +100,6 @@ sse_first_store:
 ; xmm2 = <states> in all byte positions
         movd xmm2,r9
         pshufb xmm2,xmm0
-; xmm7 = ff in all byte positions
-        mov rax,0FFh
-        movd xmm7,rax
-        pshufb xmm7,xmm0
 ; figure out how much work to do with SSE2
 ; (1) the work happens in 16-byte chunks
 ; (2) wrapping must be avoided in the last few bytes
@@ -153,9 +148,8 @@ sse_mainloop:
 ; store {cell+1 (mod states)} x 16 but only where matches were found
         pmovmskb rax,xmm3
         pand xmm0,xmm3             ; mask out unchanged
-        pxor xmm3,xmm7
-        pand xmm8,xmm3             ; mask out changed
-        por xmm0,xmm8              ; combine
+        pandn xmm3,xmm8            ; mask out changed
+        por xmm0,xmm3              ; combine
         movdqu [rdi],xmm0
 ; count how many changes we made
         popcnt rax,rax
@@ -217,10 +211,9 @@ sse_last_store:
         inc rcx
         mov rax,rcx
         movdqa xmm6,[rsp]
-        movdqa xmm7,[rsp+10h]
-        movdqa xmm8,[rsp+20h]
-        movdqa xmm9,[rsp+30h]
-        add rsp,16*4
+        movdqa xmm8,[rsp+10h]
+        movdqa xmm9,[rsp+20h]
+        add rsp,16*3
         pop rbx
         pop rsi
         pop rdi
