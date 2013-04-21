@@ -158,7 +158,7 @@ mainloop:
         por xmm0,xmm8              ; combine
         movdqu [rdi],xmm0
 ; count how many changes we made
-        popcnt rax,rax
+        popcnt rax,rax             ; TODO only on Nehalem/Bulldozer
         add rcx,rax
         add rsi,16
         add rdi,16
