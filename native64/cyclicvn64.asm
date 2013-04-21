@@ -49,11 +49,11 @@
 	
         .code
 
-; int cyclic_vn_64(byte *from [rcx], byte *to [rdx],
-;                  int width [r8], int states [r9]);
+; int cyclic_vn_64_sse(byte *from [rcx], byte *to [rdx],
+;                      int width [r8], int states [r9]);
 ; Returns change count
 ; NB we don't handle the first or last row.
-cyclic_vn_64:
+cyclic_vn_64_sse:
         push rdi
         push rsi
         push rbx
@@ -74,20 +74,20 @@ cyclic_vn_64:
         mov bl,al
         inc al
         cmp al,r9b
-        jb first_nomod
+        jb sse_first_nomod
         xor rax,rax
-first_nomod:
+sse_first_nomod:
         cmp al,[rsi+r8-1]      ; left (wrapped)
-        je first_store
+        je sse_first_store
         cmp al,[rsi+1]         ; right
-        je first_store
+        je sse_first_store
         cmp al,[rsi+r8]        ; down
-        je first_store
+        je sse_first_store
         cmp al,[rsi+r11]       ; up
-        je first_store
+        je sse_first_store
         mov al,bl              ; retrieve original
         dec rcx
-first_store:
+sse_first_store:
         mov [rdi],al
         inc rcx
         inc rsi
@@ -114,14 +114,14 @@ first_store:
 ; 15 from the count.
         mov rdx,r10
         sub rdx,15                ; can't do the last 15 bytes
-        jbe trailer
+        jbe sse_trailer
         shr rdx,4                 ; scale down to dqwords
-        je trailer
+        je sse_trailer
         mov rax,rdx
         shl rax,4                 ; scale back up to bytes
         sub r10,rax               ; length of trailer
         align 16
-mainloop:
+sse_mainloop:
         movdqu xmm0,[rsi]         ; get {cell} x 16
 ; get 4 x {neighbour} x 16
         movdqu xmm3,[rsi-1]       ; left
@@ -158,61 +158,61 @@ mainloop:
         por xmm0,xmm8              ; combine
         movdqu [rdi],xmm0
 ; count how many changes we made
-        popcnt rax,rax             ; TODO only on Nehalem/Bulldozer
+        popcnt rax,rax
         add rcx,rax
         add rsi,16
         add rdi,16
         dec rdx
-        jnz mainloop
+        jnz sse_mainloop
 ; do the last r10 bytes individually
-trailer:
+sse_trailer:
         cmp r10,0
-        je last
+        je sse_last
         add rcx,r10
-byte_loop:
+sse_byte_loop:
         mov al,[rsi]           ; get cell value
         mov bl,al              ; stash it for later
         inc al
         cmp al,r9b
-        jb byte_nomod
+        jb sse_byte_nomod
         xor rax,rax            ; wrapped around
-byte_nomod:
+sse_byte_nomod:
         cmp al,[rsi-1]         ; left
-        je byte_store
+        je sse_byte_store
         cmp al,[rsi+1]         ; right
-        je byte_store
+        je sse_byte_store
         cmp al,[rsi+r8]        ; down
-        je byte_store
+        je sse_byte_store
         cmp al,[rsi+r11]       ; up
-        je byte_store
+        je sse_byte_store
         mov al,bl              ; retrieve original
         dec rcx
-byte_store:
+sse_byte_store:
         mov [rdi],al
         inc rsi
         inc rdi
         dec r10
-        jnz byte_loop
+        jnz sse_byte_loop
 ; last cell is special-cased
-last:
+sse_last:
         mov al,[rsi]
         mov bl,al
         inc al
         cmp al,r9b
-        jb last_nomod
+        jb sse_last_nomod
         xor rax,rax
-last_nomod:
+sse_last_nomod:
         cmp al,[rsi-1]         ; left
-        je last_store
+        je sse_last_store
         cmp al,[rsi+r11+1]     ; right (wrapped)
-        je last_store
+        je sse_last_store
         cmp al,[rsi+r8]        ; down
-        je last_store
+        je sse_last_store
         cmp al,[rsi+r11]       ; up
-        je last_store
+        je sse_last_store
         mov al,bl              ; retrieve original
         dec rcx
-last_store:
+sse_last_store:
         mov [rdi],al
         inc rcx
         mov rax,rcx
@@ -224,6 +224,91 @@ last_store:
         pop rbx
         pop rsi
         pop rdi
+        ret
+
+; int cyclic_vn_64_nosse(byte *from [rcx], byte *to [rdx],
+;                        int width [r8], int states [r9]);
+; Returns change count
+; NB we don't handle the first or last row.
+cyclic_vn_64_nosse:
+        push rsi
+        push rbx
+        mov r10,r8
+        mov r11,r8
+        sub r10,2              ; r10 = cells left
+        neg r11                ; r11 = -width
+        mov rsi,r8             ; rsi = change count
+; first cell
+        mov al,[rcx]
+        mov bl,al
+        inc al
+        cmp al,r9b
+        jb nosse_first_nomod
+        xor rax,rax
+nosse_first_nomod:
+        cmp al,[rcx+r8-1]      ; left (wrapped)
+        je nosse_first_store
+        cmp al,[rcx+1]         ; right
+        je nosse_first_store
+        cmp al,[rcx+r8]        ; down
+        je nosse_first_store
+        cmp al,[rcx+r11]       ; up
+        je nosse_first_store
+        mov al,bl              ; retrieve original
+        dec rsi
+nosse_first_store:
+        mov [rdx],al
+        inc rcx
+        inc rdx
+; all but first and last cells
+        align 16
+nosse_mainloop:
+        mov al,[rcx]           ; get cell value
+        mov bl,al              ; stash it for later
+        inc al
+        cmp al,r9b
+        jb nosse_main_nomod
+        xor rax,rax            ; wrapped around
+nosse_main_nomod:
+        cmp al,[rcx-1]         ; left
+        je nosse_main_store
+        cmp al,[rcx+1]         ; right
+        je nosse_main_store
+        cmp al,[rcx+r8]        ; down
+        je nosse_main_store
+        cmp al,[rcx+r11]       ; up
+        je nosse_main_store
+        mov al,bl              ; retrieve original
+        dec rsi
+nosse_main_store:
+        mov [rdx],al
+        inc rcx
+        inc rdx
+        dec r10
+        jnz nosse_mainloop
+; last cell
+        mov al,[rcx]
+        mov bl,al
+        inc al
+        cmp al,r9b
+        jb nosse_last_nomod
+        xor rax,rax
+nosse_last_nomod:
+        cmp al,[rcx-1]         ; left
+        je nosse_last_store
+        cmp al,[rcx+r11+1]     ; right (wrapped)
+        je nosse_last_store
+        cmp al,[rcx+r8]        ; down
+        je nosse_last_store
+        cmp al,[rcx+r11]       ; up
+        je nosse_last_store
+        mov al,bl              ; retrieve original
+        dec rsi
+nosse_last_store:
+        mov [rdx],al
+        mov rax,rsi
+        pop rbx
+        pop rsi
         ret
 
 ; int cyclic_vn_64_all(byte *from [rcx], byte *to [rdx],
@@ -239,10 +324,19 @@ cyclic_vn_64_all:
         push r11
         push r12
         push r13
+        push r14
+        sub rsp,8              ; stack must be aligned
         cld
-        mov rbx,[rsp+96]
         mov r10,rcx            ; from
         mov r11,rdx            ; to
+        mov rax,1
+        lea r14,cyclic_vn_64_sse
+        cpuid
+        bt ecx,23              ; we use popcnt
+        jc identified
+        lea r14,cyclic_vn_64_nosse
+identified:
+        mov rbx,[rsp+112]      ; height
         mov r12,r8             ; width
         mov rax,r8
         mul rbx                ; rax = width * height
@@ -266,13 +360,15 @@ all_loop:
         mov rdx,rdi
         mov r8,r12
         ; r9 is right already
-        call cyclic_vn_64
+        call r14
         add r13,rax
         add rsi,r12
         add rdi,r12
         dec rbx
         jnz all_loop
         mov rax,r13
+        add rsp,8
+        pop r14
         pop r13
         pop r12
         pop r11
