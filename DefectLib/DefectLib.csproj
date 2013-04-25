@@ -67,6 +67,7 @@
   <ItemGroup>
     <Compile Include="BitWriter.cs" />
     <Compile Include="GIF.cs" />
+    <Compile Include="GIF.Save.cs" />
     <Compile Include="PrefixTable.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Tools.cs" />
