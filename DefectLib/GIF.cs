@@ -266,6 +266,22 @@ namespace Defect
 
     #endregion
 
+    #region Constants
+
+    static readonly string Version = "GIF89a";
+
+    const byte ExtensionIntroducer = 0x21;
+
+    const byte GraphicControlExtension = 0xF9;
+
+    const byte GraphicControlExtensionSize = 0x04;
+
+    const byte ImageDescriptor = 0x2C;
+
+    const byte Trailer = 0x3B;
+
+    #endregion
+    
   }
 
 }

@@ -121,7 +121,7 @@ namespace Defect
       if (Debug) {
         Console.Error.WriteLine("Writing signature");
       }
-      WriteString("GIF89a");
+      WriteString(Version);
     }
 
     private void WriteLogicalScreenDescriptor()
@@ -175,9 +175,9 @@ namespace Defect
       if (Debug) {
         Console.Error.WriteLine("Writing graphic control extension");
       }
-      WriteByte(0x21);
-      WriteByte(0xF9);
-      WriteByte(0x04);
+      WriteByte(ExtensionIntroducer);
+      WriteByte(GraphicControlExtension);
+      WriteByte(GraphicControlExtensionSize);
       int packedFields = 0;
       if (image.TransparencyIndex != -1) {
         packedFields |= 1;
@@ -200,7 +200,7 @@ namespace Defect
       if (Debug) {
         Console.Error.WriteLine("Writing image descriptor");
       }
-      WriteByte(0x2C);
+      WriteByte(ImageDescriptor);
       WriteShort(image.X);
       WriteShort(image.Y);
       WriteShort(image.Width > 0 ? image.Width : ScreenWidth);
@@ -296,7 +296,7 @@ namespace Defect
       if (Debug) {
         Console.Error.WriteLine("Writing trailer");
       }
-      WriteByte(0x3B);
+      WriteByte(Trailer);
     }
 
     #endregion
