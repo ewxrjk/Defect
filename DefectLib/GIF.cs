@@ -268,7 +268,9 @@ namespace Defect
 
     #region Constants
 
-    static readonly string Version = "GIF89a";
+    static readonly string Header = "GIF";
+
+    static readonly string Version89a = "89a";
 
     const byte ExtensionIntroducer = 0x21;
 

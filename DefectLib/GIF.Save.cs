@@ -121,7 +121,7 @@ namespace Defect
       if (Debug) {
         Console.Error.WriteLine("Writing signature");
       }
-      WriteString(Version);
+      WriteString(Header + Version89a);
     }
 
     private void WriteLogicalScreenDescriptor()
