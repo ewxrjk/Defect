@@ -15,6 +15,7 @@
 
 using Defect;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Collections.ObjectModel;
 using System.IO;
 
 namespace Tests
@@ -22,170 +23,90 @@ namespace Tests
   [TestClass]
   public class BitWriterTests
   {
-    [TestMethod]
-    public void BitWriterEmptyTest()
+    private void Check(int[] input, int CodeLength, byte[] expectBytes)
     {
       using (MemoryStream ms = new MemoryStream()) {
         BitWriter bw = new BitWriter()
         {
           Output = ms,
-          CodeLength = 4,
+          CodeLength = CodeLength,
         };
+        foreach (int n in input) {
+          bw.WriteBits(n);
+        }
         bw.FlushBits();
         bw.FlushBytes();
-        byte[] bytes = ms.ToArray();
-        Assert.AreEqual(0, bytes.Length);
+        byte[] actualBytes = ms.ToArray();
+        Assert.AreEqual(expectBytes.Length, actualBytes.Length, "output length");
+        for (int i = 0; i < expectBytes.Length; ++i) {
+          Assert.AreEqual(expectBytes[i], actualBytes[i],
+                          string.Format("position {0}", i));
+        }
+        ms.Seek(0, SeekOrigin.Begin);
+        BitReader br = new BitReader()
+        {
+          Input = ms,
+          CodeLength = CodeLength,
+        };
+        int m;
+        Collection<int> output = new Collection<int>();
+        while ((m = br.ReadCode()) != -1) {
+          output.Add(m);
+          if (output.Count == input.Length && br.WholeCodeLeft()) {
+            break;
+          }
+        }
+        Assert.AreEqual(input.Length, output.Count, "bitread length");
+        for(int i = 0; i < input.Length; ++i) {
+          Assert.AreEqual(input[i], output[i],
+                          string.Format("position {0}", i));
+        }
       }
+    }
+
+    [TestMethod]
+    public void BitWriterEmptyTest()
+    {
+      Check(new int[] { }, 4, new byte[] { });
     }
 
     [TestMethod]
     public void BitWriterOneUnitTest()
     {
-      using (MemoryStream ms = new MemoryStream()) {
-        BitWriter bw = new BitWriter()
-        {
-          Output = ms,
-          CodeLength = 4,
-        };
-        bw.WriteBits(5);
-        bw.FlushBits();
-        bw.FlushBytes();
-        byte[] bytes = ms.ToArray();
-        Assert.AreEqual(2, bytes.Length);
-        Assert.AreEqual(0x01, bytes[0]);
-        Assert.AreEqual(0x05, bytes[1]);
-      }
+      Check(new int[] { 5 }, 4, new byte[] { 0x01, 0x05 });
     }
 
     [TestMethod]
     public void BitWriterTwoUnitsTest()
     {
-      using (MemoryStream ms = new MemoryStream()) {
-        BitWriter bw = new BitWriter()
-        {
-          Output = ms,
-          CodeLength = 4,
-        };
-        bw.WriteBits(5);
-        bw.WriteBits(7);
-        bw.FlushBits();
-        bw.FlushBytes();
-        byte[] bytes = ms.ToArray();
-        Assert.AreEqual(2, bytes.Length);
-        Assert.AreEqual(0x01, bytes[0]);
-        Assert.AreEqual(0x75, bytes[1]);
-      }
+      Check(new int[] { 5, 7 }, 4, new byte[] { 0x01, 0x75 });
     }
 
     [TestMethod]
     public void BitWriterThreeUnitsTest()
     {
-      using (MemoryStream ms = new MemoryStream()) {
-        BitWriter bw = new BitWriter()
-        {
-          Output = ms,
-          CodeLength = 4,
-        };
-        bw.WriteBits(5);
-        bw.WriteBits(7);
-        bw.WriteBits(1);
-        bw.FlushBits();
-        bw.FlushBytes();
-        byte[] bytes = ms.ToArray();
-        Assert.AreEqual(3, bytes.Length);
-        Assert.AreEqual(0x02, bytes[0]);
-        Assert.AreEqual(0x75, bytes[1]);
-        Assert.AreEqual(0x01, bytes[2]);
-      }
+      Check(new int[] { 5, 7, 1 }, 4, new byte[] { 0x02, 0x75, 0x01 });
     }
 
     [TestMethod]
     public void BitWriterUnalignedTest()
     {
-      using (MemoryStream ms = new MemoryStream()) {
-        BitWriter bw = new BitWriter()
-        {
-          Output = ms,
-          CodeLength = 5,
-        };
-        bw.WriteBits(5);
-        bw.WriteBits(7);
-        bw.WriteBits(3);
-        bw.WriteBits(7);
-        bw.FlushBits();
-        bw.FlushBytes();
-        byte[] bytes = ms.ToArray();
-        Assert.AreEqual(4, bytes.Length);
-        Assert.AreEqual(0x03, bytes[0]);
-        Assert.AreEqual(0xE5, bytes[1]);
-        Assert.AreEqual(0x8C, bytes[2]);
-        Assert.AreEqual(0x03, bytes[3]);
-      }
+      Check(new int[] { 5, 7, 3, 7 }, 5, new byte[] { 0x03, 0xE5, 0x8C, 0x03 });
     }
 
     [TestMethod]
     public void BitWriterWideTest()
     {
-      using (MemoryStream ms = new MemoryStream()) {
-        BitWriter bw = new BitWriter()
-        {
-          Output = ms,
-          CodeLength = 12,
-        };
-        bw.WriteBits(5);
-        bw.WriteBits(7);
-        bw.WriteBits(3);
-        bw.WriteBits(7);
-        bw.FlushBits();
-        bw.FlushBytes();
-        byte[] bytes = ms.ToArray();
-        Assert.AreEqual(7, bytes.Length);
-        Assert.AreEqual(0x06, bytes[0]);
-        Assert.AreEqual(0x05, bytes[1]);
-        Assert.AreEqual(0x70, bytes[2]);
-        Assert.AreEqual(0x00, bytes[3]);
-        Assert.AreEqual(0x03, bytes[4]);
-        Assert.AreEqual(0x70, bytes[5]);
-        Assert.AreEqual(0x00, bytes[6]);
-      }
+      Check(new int[] { 5, 7, 3, 7 }, 12, new byte[] { 0x06, 0x05, 0x70, 0x00, 0x03, 0x70, 0x00 });
     }
 
     [TestMethod]
     public void BitWriterWpTest()
     {
-      using (MemoryStream ms = new MemoryStream()) {
-        BitWriter bw = new BitWriter()
-        {
-          Output = ms,
-          CodeLength = 9,
-        };
-        // http://en.wikipedia.org/wiki/Graphics_Interchange_Format
-        bw.WriteBits(0x100);
-        bw.WriteBits(0x028);
-        bw.WriteBits(0x0FF);
-        bw.WriteBits(0x103);
-        bw.WriteBits(0x102);
-        bw.WriteBits(0x103);
-        bw.WriteBits(0x106);
-        bw.WriteBits(0x107);
-        bw.WriteBits(0x101);
-        bw.FlushBits();
-        bw.FlushBytes();
-        byte[] bytes = ms.ToArray();
-        Assert.AreEqual(12, bytes.Length);
-        Assert.AreEqual(0x0B, bytes[0]);
-        Assert.AreEqual(0x00, bytes[1]);
-        Assert.AreEqual(0x51, bytes[2]);
-        Assert.AreEqual(0xFC, bytes[3]);
-        Assert.AreEqual(0x1B, bytes[4]);
-        Assert.AreEqual(0x28, bytes[5]);
-        Assert.AreEqual(0x70, bytes[6]);
-        Assert.AreEqual(0xA0, bytes[7]);
-        Assert.AreEqual(0xC1, bytes[8]);
-        Assert.AreEqual(0x83, bytes[9]);
-        Assert.AreEqual(0x01, bytes[10]);
-        Assert.AreEqual(0x01, bytes[11]);
-      }
+      // http://en.wikipedia.org/wiki/Graphics_Interchange_Format
+      Check(new int[] { 0x100, 0x028, 0x0FF, 0x103, 0x102, 0x103, 0x106, 0x107, 0x101 },
+            9,
+            new byte[] { 0x0B, 0x00, 0x51, 0xFC, 0x1B, 0x28, 0x70, 0xA0, 0xC1, 0x83, 0x01, 0x01 });
     }
 
   }
