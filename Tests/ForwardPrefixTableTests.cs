@@ -16,15 +16,17 @@
 using Defect;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+// TODO reverse prefix table tests too
+
 namespace Tests
 {
   [TestClass]
-  public class PrefixTableTests
+  public class ForwardPrefixTableTests
   {
     [TestMethod]
     public void EmptyPrefixTableTest()
     {
-      PrefixTable pt = new PrefixTable();
+      ForwardPrefixTable pt = new ForwardPrefixTable();
       int length;
       Assert.AreEqual(-1, pt.Find(new byte[0], 0, out length));
       Assert.AreEqual(0, length);
@@ -37,7 +39,7 @@ namespace Tests
     [TestMethod]
     public void OneBytePrefixTableTest()
     {
-      PrefixTable pt = new PrefixTable();
+      ForwardPrefixTable pt = new ForwardPrefixTable();
       int length;
       for (int n = 0; n < 16; ++n) {
         pt.Add(n, -1, (byte)n);
@@ -53,7 +55,7 @@ namespace Tests
     [TestMethod]
     public void ShortPrefixTableTest()
     {
-      PrefixTable pt = new PrefixTable();
+      ForwardPrefixTable pt = new ForwardPrefixTable();
       int length;
       pt.Add(0, -1, 0);
       pt.Add(1, 0, 1);
@@ -70,7 +72,7 @@ namespace Tests
     [TestMethod]
     public void DivergentPrefixTableTest()
     {
-      PrefixTable pt = new PrefixTable();
+      ForwardPrefixTable pt = new ForwardPrefixTable();
       int length;
       pt.Add(0, -1, 0);
       pt.Add(1, 0, 1);
@@ -88,7 +90,7 @@ namespace Tests
 
     public void OffsetPrefixTableTest()
     {
-      PrefixTable pt = new PrefixTable();
+      ForwardPrefixTable pt = new ForwardPrefixTable();
       int length;
       pt.Add(0, -1, 0);
       pt.Add(1, 0, 1);

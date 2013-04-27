@@ -18,7 +18,7 @@ namespace Defect
   /// <summary>
   /// An efficiently searchable table of up to 4096 prefixes
   /// </summary>
-  public class PrefixTable
+  public class ForwardPrefixTable
   {
     // TODO this implementation is quite allocation-heavy; we should be able to do with a single large array.
 

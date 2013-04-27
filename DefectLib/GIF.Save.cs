@@ -245,7 +245,7 @@ namespace Defect
         Debug = this.Debug,
       };
       // Initialize the prefix table with matches for all single-unit codes
-      PrefixTable prefixes = new PrefixTable();
+      ForwardPrefixTable prefixes = new ForwardPrefixTable();
       for (int n = 0; n < (1 << codeSize); ++n) {
         prefixes.Add(n, -1, (byte)n);
       }
