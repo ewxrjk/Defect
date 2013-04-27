@@ -124,6 +124,7 @@ namespace Defect
         if (bytes < blockSize) {
           throw new TruncatedInputException();
         }
+        bufferPosition = 0;
       }
       pendingByte = block[bufferPosition++];
       bitsLeft = 8;

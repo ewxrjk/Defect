@@ -133,6 +133,7 @@ namespace Defect
           while (length > 0) {
             while (length > 0) {
               ReadByte();
+              --length;
             }
             length = ReadByte();
           }
