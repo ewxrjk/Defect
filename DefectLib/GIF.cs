@@ -26,6 +26,7 @@ namespace Defect
     public GIF()
     {
       Output = null;
+      Input = null;
       ScreenWidth = 0;
       ScreenHeight = 0;
       ColorResolution = 8;
@@ -33,6 +34,8 @@ namespace Defect
       PixelAspectRatio = 1;
       Debug = false;
       AutoClose = false;
+      ImageHandler = DefaultImageHandler;
+      Images = null;
     }
 
     #region Subclasses
@@ -80,7 +83,7 @@ namespace Defect
       /// <returns>The least positive <code>n</code> such that <code>1 &lt;&lt; n</code> is sufficient to represent <code>Table</code>.</returns>
       internal int BitSize()
       {
-        for (int bits = 1; bits < 8; ++bits) {
+        for (int bits = 1; bits <= 8; ++bits) {
           if ((1 << bits) >= Table.Length) {
             return bits;
           }
@@ -120,7 +123,7 @@ namespace Defect
     /// </summary>
     public class Image
     {
-      public  Image()
+      public Image()
       {
         X = 0;
         Y = 0;
@@ -198,6 +201,12 @@ namespace Defect
     /// </summary>
     /// <remarks>The default value is <code>null</code>.</remarks>
     public Stream Output { get; set; }
+
+    /// <summary>
+    /// Stream which GIF is read from
+    /// </summary>
+    /// <remarks>The default value is <code>null</code>.</remarks>
+    public Stream Input { get; set; }
     
     /// <summary>
     /// Logical screen Width in pixels
@@ -269,6 +278,8 @@ namespace Defect
     #region Constants
 
     static readonly string Header = "GIF";
+
+    static readonly string Version87a = "87a";
 
     static readonly string Version89a = "89a";
 

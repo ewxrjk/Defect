@@ -17,6 +17,7 @@ using Defect;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 
 namespace Tests
 {
@@ -27,7 +28,7 @@ namespace Tests
     public void EmptyGifTest()
     {
       using (MemoryStream stream = new MemoryStream()) {
-        GIF gif = new GIF()
+        GIF saveGif = new GIF()
         {
           Output = stream,
           ScreenWidth = 0,
@@ -37,12 +38,13 @@ namespace Tests
             Table = new Color[2] { Color.White, Color.Black }
           }
         };
-        gif.Begin();
-        gif.WriteImage(new GIF.Image()
+        saveGif.Begin();
+        GIF.Image image = new GIF.Image()
         {
           ImageData = new byte[0],
-        });
-        gif.End();
+        };
+        saveGif.WriteImage(image);
+        saveGif.End();
         int codeSize = 2;
         int clear = 1 << codeSize;
         int end = 1 + clear;
@@ -81,6 +83,25 @@ namespace Tests
           // 41: Trailer
           0x3B
         }, stream.ToArray(), "EmptyGifTest");
+        stream.Seek(0, SeekOrigin.Begin);
+        GIF loadGIF = new GIF()
+        {
+          Input = stream,
+        };
+        loadGIF.Load();
+        Assert.AreEqual(1, loadGIF.Images.Count);
+        Assert.AreEqual(image.Width, loadGIF.Images[0].Width);
+        Assert.AreEqual(image.Height, loadGIF.Images[0].Height);
+        TestUtils.AreEqual(image.ImageData, loadGIF.Images[0].ImageData, "image data");
+        Assert.AreEqual(2, loadGIF.GlobalColorTable.Table.Length);
+        Assert.AreEqual(Color.White.A, loadGIF.GlobalColorTable.Table[0].A);
+        Assert.AreEqual(Color.White.R, loadGIF.GlobalColorTable.Table[0].R);
+        Assert.AreEqual(Color.White.G, loadGIF.GlobalColorTable.Table[0].G);
+        Assert.AreEqual(Color.White.B, loadGIF.GlobalColorTable.Table[0].B);
+        Assert.AreEqual(Color.Black.A, loadGIF.GlobalColorTable.Table[1].A);
+        Assert.AreEqual(Color.Black.R, loadGIF.GlobalColorTable.Table[1].R);
+        Assert.AreEqual(Color.Black.G, loadGIF.GlobalColorTable.Table[1].G);
+        Assert.AreEqual(Color.Black.B, loadGIF.GlobalColorTable.Table[1].B);
       }
     }
 
@@ -88,7 +109,7 @@ namespace Tests
     public void TinyGifTest()
     {
       using (MemoryStream stream = new MemoryStream()) {
-        GIF gif = new GIF()
+        GIF saveGif = new GIF()
         {
           Output = stream,
           ScreenWidth = 1,
@@ -98,12 +119,15 @@ namespace Tests
             Table = new Color[2] { Color.White, Color.Black }
           }
         };
-        gif.Begin();
-        gif.WriteImage(new GIF.Image()
+        saveGif.Begin();
+        GIF.Image image = new GIF.Image()
         {
+          Width = 1,
+          Height = 1,
           ImageData = new byte[] { 0 },
-        });
-        gif.End();
+        };
+        saveGif.WriteImage(image);
+        saveGif.End();
         int codeSize = 2;
         int clear = 1 << codeSize;
         int end = 1 + clear;
@@ -146,6 +170,16 @@ namespace Tests
           0x3B
         };
         TestUtils.AreEqual(expected, got, "TinyGifTest");
+        stream.Seek(0, SeekOrigin.Begin);
+        GIF loadGIF = new GIF()
+        {
+          Input = stream,
+        };
+        loadGIF.Load();
+        Assert.AreEqual(1, loadGIF.Images.Count);
+        Assert.AreEqual(image.Width, loadGIF.Images[0].Width);
+        Assert.AreEqual(image.Height, loadGIF.Images[0].Height);
+        TestUtils.AreEqual(image.ImageData, loadGIF.Images[0].ImageData, "image data");
       }
     }
 
