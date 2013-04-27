@@ -62,9 +62,6 @@ namespace Tests
         catch (TruncatedInputException) {
           truncated = true;
         }
-        if (!truncated) {
-          br.Clear();
-        }
         Assert.AreEqual(input.Length, output.Count, "bitread length");
         for(int i = 0; i < input.Length; ++i) {
           Assert.AreEqual(input[i], output[i],
@@ -83,7 +80,7 @@ namespace Tests
     [TestMethod]
     public void BitWriterOneUnitTest()
     {
-      Check(new int[] { 5 }, 4, new byte[] { 0x01, 0x05 }, true);
+      Check(new int[] { 5 }, 4, new byte[] { 0x01, 0x05 }, false);
     }
 
     [TestMethod]
