@@ -16,15 +16,13 @@
 using Defect;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-// TODO reverse prefix table tests too
-
 namespace Tests
 {
   [TestClass]
   public class ForwardPrefixTableTests
   {
     [TestMethod]
-    public void EmptyPrefixTableTest()
+    public void EmptyForwardPrefixTableTest()
     {
       ForwardPrefixTable pt = new ForwardPrefixTable();
       int length;
@@ -37,7 +35,7 @@ namespace Tests
     }
 
     [TestMethod]
-    public void OneBytePrefixTableTest()
+    public void OneByteForwardPrefixTableTest()
     {
       ForwardPrefixTable pt = new ForwardPrefixTable();
       int length;
@@ -53,7 +51,7 @@ namespace Tests
     }
 
     [TestMethod]
-    public void ShortPrefixTableTest()
+    public void ShortForwardrefixTableTest()
     {
       ForwardPrefixTable pt = new ForwardPrefixTable();
       int length;
@@ -70,7 +68,7 @@ namespace Tests
     }
 
     [TestMethod]
-    public void DivergentPrefixTableTest()
+    public void DivergentForwardPrefixTableTest()
     {
       ForwardPrefixTable pt = new ForwardPrefixTable();
       int length;
@@ -88,7 +86,7 @@ namespace Tests
       Assert.AreEqual(2, length);
     }
 
-    public void OffsetPrefixTableTest()
+    public void OffsetForwardPrefixTableTest()
     {
       ForwardPrefixTable pt = new ForwardPrefixTable();
       int length;

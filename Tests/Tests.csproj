@@ -73,10 +73,11 @@
   <ItemGroup>
     <Compile Include="GIFTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ReversePrefixTableTests.cs" />
     <Compile Include="TestUtils.cs" />
     <Compile Include="ToolsTest.cs" />
     <Compile Include="BitWriterTests.cs" />
-    <Compile Include="PrefixTableTests.cs" />
+    <Compile Include="ForwardPrefixTableTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DefectLib\DefectLib.csproj">
