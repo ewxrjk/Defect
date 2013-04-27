@@ -183,5 +183,44 @@ namespace Tests
       }
     }
 
+    [TestMethod]
+    public void TrickyGIFTest()
+    {
+      using (MemoryStream stream = new MemoryStream()) {
+        GIF saveGif = new GIF()
+        {
+          Output = stream,
+          ScreenWidth = 8,
+          ScreenHeight = 8,
+          GlobalColorTable = new GIF.ColorTable()
+          {
+            Table = new Color[4] { Color.White, Color.Black, Color.Red, Color.Green }
+          }
+        };
+        saveGif.Begin();
+        GIF.Image image = new GIF.Image()
+        {
+          Width = 8,
+          Height = 8,
+          ImageData = new byte[64],
+        };
+        for (int i = 0; i < 64; ++i) {
+          image.ImageData[i] = (byte)(i % 4);
+        }
+        saveGif.WriteImage(image);
+        saveGif.End();
+        // TODO ideally check the byte stream is as expected
+        stream.Seek(0, SeekOrigin.Begin);
+        GIF loadGIF = new GIF()
+        {
+          Input = stream,
+        };
+        loadGIF.Load();
+        Assert.AreEqual(1, loadGIF.Images.Count);
+        Assert.AreEqual(image.Width, loadGIF.Images[0].Width);
+        Assert.AreEqual(image.Height, loadGIF.Images[0].Height);
+        TestUtils.AreEqual(image.ImageData, loadGIF.Images[0].ImageData, "image data");
+      }
+    }
   }
 }
