@@ -91,7 +91,7 @@ namespace Defect
     {
       for (; ; ) {
         blockSize = Input.ReadByte();
-        if (blockSize <= 0) {
+        if (blockSize < 0) {
           throw new TruncatedInputException();
         }
         if (blockSize == 0) {
