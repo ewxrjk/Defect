@@ -23,7 +23,7 @@ namespace Tests
   [TestClass]
   public class BitWriterTests
   {
-    private void Check(int[] input, int CodeLength, byte[] expectBytes)
+    private void Check(int[] input, int CodeLength, byte[] expectBytes, bool expectTruncated)
     {
       using (MemoryStream ms = new MemoryStream()) {
         BitWriter bw = new BitWriter()
@@ -50,54 +50,66 @@ namespace Tests
         };
         int m;
         Collection<int> output = new Collection<int>();
-        while ((m = br.ReadCode()) != -1) {
-          output.Add(m);
-          if (output.Count == input.Length && br.WholeCodeLeft()) {
-            break;
+        bool truncated = false;
+        try {
+          while ((m = br.ReadCode()) != -1) {
+            output.Add(m);
+            if (output.Count == input.Length && br.WholeCodeLeft()) {
+              break;
+            }
           }
+        }
+        catch (TruncatedInputException) {
+          truncated = true;
+        }
+        if (!truncated) {
+          br.Clear();
         }
         Assert.AreEqual(input.Length, output.Count, "bitread length");
         for(int i = 0; i < input.Length; ++i) {
           Assert.AreEqual(input[i], output[i],
                           string.Format("position {0}", i));
         }
+        Assert.AreEqual(expectTruncated, truncated);
       }
     }
 
     [TestMethod]
     public void BitWriterEmptyTest()
     {
-      Check(new int[] { }, 4, new byte[] { });
+      Check(new int[] { }, 4, new byte[] { }, true);
     }
 
     [TestMethod]
     public void BitWriterOneUnitTest()
     {
-      Check(new int[] { 5 }, 4, new byte[] { 0x01, 0x05 });
+      Check(new int[] { 5 }, 4, new byte[] { 0x01, 0x05 }, true);
     }
 
     [TestMethod]
     public void BitWriterTwoUnitsTest()
     {
-      Check(new int[] { 5, 7 }, 4, new byte[] { 0x01, 0x75 });
+      Check(new int[] { 5, 7 }, 4, new byte[] { 0x01, 0x75 }, true);
     }
 
     [TestMethod]
     public void BitWriterThreeUnitsTest()
     {
-      Check(new int[] { 5, 7, 1 }, 4, new byte[] { 0x02, 0x75, 0x01 });
+      Check(new int[] { 5, 7, 1 }, 4, new byte[] { 0x02, 0x75, 0x01 }, false);
     }
 
     [TestMethod]
     public void BitWriterUnalignedTest()
     {
-      Check(new int[] { 5, 7, 3, 7 }, 5, new byte[] { 0x03, 0xE5, 0x8C, 0x03 });
+      Check(new int[] { 5, 7, 3, 7 }, 5, new byte[] { 0x03, 0xE5, 0x8C, 0x03 }, true);
     }
 
     [TestMethod]
     public void BitWriterWideTest()
     {
-      Check(new int[] { 5, 7, 3, 7 }, 12, new byte[] { 0x06, 0x05, 0x70, 0x00, 0x03, 0x70, 0x00 });
+      Check(new int[] { 5, 7, 3, 7 },
+            12,
+            new byte[] { 0x06, 0x05, 0x70, 0x00, 0x03, 0x70, 0x00 }, true);
     }
 
     [TestMethod]
@@ -106,7 +118,8 @@ namespace Tests
       // http://en.wikipedia.org/wiki/Graphics_Interchange_Format
       Check(new int[] { 0x100, 0x028, 0x0FF, 0x103, 0x102, 0x103, 0x106, 0x107, 0x101 },
             9,
-            new byte[] { 0x0B, 0x00, 0x51, 0xFC, 0x1B, 0x28, 0x70, 0xA0, 0xC1, 0x83, 0x01, 0x01 });
+            new byte[] { 0x0B, 0x00, 0x51, 0xFC, 0x1B, 0x28, 0x70, 0xA0, 0xC1, 0x83, 0x01, 0x01 },
+            true);
     }
 
   }

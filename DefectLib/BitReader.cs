@@ -85,6 +85,26 @@ namespace Defect
     }
 
     /// <summary>
+    /// Read remaining blocks until no more input
+    /// </summary>
+    public void Clear()
+    {
+      for (; ; ) {
+        blockSize = Input.ReadByte();
+        if (blockSize <= 0) {
+          throw new TruncatedInputException();
+        }
+        if (blockSize == 0) {
+          return;
+        }
+        int bytes = Input.Read(block, 0, blockSize);
+        if (bytes < blockSize) {
+          throw new TruncatedInputException();
+        }
+      }
+    }
+
+    /// <summary>
     /// Return true if there is at least one code readable without reading another byte
     /// </summary>
     /// <returns></returns>
@@ -98,11 +118,11 @@ namespace Defect
       if (bufferPosition >= blockSize) {
         blockSize = Input.ReadByte();
         if (blockSize <= 0) {
-          return -1;
+          throw new TruncatedInputException();
         }
         int bytes = Input.Read(block, 0, blockSize);
         if (bytes < blockSize) {
-          throw new ApplicationException("truncated GIF"); // TODO use a specific exception
+          throw new TruncatedInputException();
         }
       }
       pendingByte = block[bufferPosition++];
