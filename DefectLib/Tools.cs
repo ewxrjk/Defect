@@ -124,5 +124,19 @@ namespace Defect
       }
       throw new ApplicationException(string.Format("Unknown file type *{0}", extension));
     }
+
+    /// <summary>
+    /// Exchange <paramref name="a"/> and <paramref name="b"/> in place
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="a"></param>
+    /// <param name="b"></param>
+    public static void Swap<T>(ref T a, ref T b) where T : struct
+    {
+      T tmp;
+      tmp = a;
+      a = b;
+      b = tmp;
+    }
   }
 }

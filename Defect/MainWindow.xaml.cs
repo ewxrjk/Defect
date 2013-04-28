@@ -17,6 +17,7 @@ using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -303,6 +304,113 @@ namespace Defect
       options.ShowDialog();
     }
 
+    private void OpenExecuted(object sender, ExecutedRoutedEventArgs e)
+    {
+      OpenFileDialog openFileDialog = new OpenFileDialog()
+      {
+        Title = "Loadimage",
+        Filter = "GIF files|*.gif",
+      };
+      bool? result = openFileDialog.ShowDialog(this);
+      if (result == true) {
+        try {
+          using (FileStream input = new FileStream(openFileDialog.FileName, FileMode.Open)) {
+            GIF loader = new GIF()
+            {
+              Input = input,
+            };
+            loader.Load();
+            GIF.Image image = loader.Images[0];
+            // Identify colors that are actually used, and color adjacency
+            bool[] colorUsed = new bool[256];
+            int[,] colorAdjacency = new int[256, 256];
+            for (int y = 0; y < image.Height; ++y) {
+              for (int x = 0; x < image.Width; ++x) {
+                int color = image.ImageData[y * image.Width + x];
+                colorUsed[color] = true;
+                int xu = (x + 1) % image.Width;
+                int yu = (y + 1) % image.Height;
+                int xd = (x == 0 ? image.Width : x) - 1;
+                int yd = (y == 0 ? image.Height : y) - 1;
+                colorAdjacency[color, image.ImageData[y * image.Width + xu]] = 1;
+                colorAdjacency[color, image.ImageData[y * image.Width + xd]] = 1;
+                colorAdjacency[color, image.ImageData[yu * image.Width + x]] = 1;
+                colorAdjacency[color, image.ImageData[yd * image.Width + x]] = 1;
+                if (Neighbourhood == CellNeighbourhood.Moore) {
+                  colorAdjacency[color, image.ImageData[yu * image.Width + xu]] = 1;
+                  colorAdjacency[color, image.ImageData[yu * image.Width + xd]] = 1;
+                  colorAdjacency[color, image.ImageData[yd * image.Width + xu]] = 1;
+                  colorAdjacency[color, image.ImageData[yd * image.Width + xd]] = 1;
+                }
+              }
+            }
+            // Construct the initial mapping of cell states to colors
+            byte[] stateToColor = new byte[256];
+            byte[] colorToState = new byte[256];
+            int states = 0;
+            GIF.ColorTable colorTable = image.LocalColorTable ?? loader.GlobalColorTable;
+            for (int color = 0; color < colorTable.Table.Length; ++color) {
+              if (colorUsed[color]) {
+                stateToColor[states] = (byte)color;
+                ++states;
+              }
+            }
+            // Optimize color/state mapping
+            Random rng = new Random();
+            int fitness = 0;
+            for (int state = 0; state < states; ++state) {
+              int nextState = (state + 1) % states;
+              fitness += colorAdjacency[stateToColor[state], stateToColor[nextState]];
+            }
+            for (int iteration = 0; iteration < 100000; ++iteration) {
+              int a = rng.Next(states), b = rng.Next(states - 1);
+              if (b >= a) {
+                ++b;
+              }
+              Tools.Swap(ref stateToColor[a], ref stateToColor[b]);
+              int newFitness = 0;
+              for (int state = 0; state < states; ++state) {
+                int nextState = (state + 1) % states;
+                newFitness += colorAdjacency[stateToColor[state], stateToColor[nextState]];
+              }
+              if (newFitness <= fitness) {
+                Tools.Swap(ref stateToColor[a], ref stateToColor[b]);
+              }
+              else {
+                fitness = newFitness;
+                Console.WriteLine("{0} fitness -> {1}", iteration, fitness);
+              }
+            }
+            // Construct reverse array
+            for (int state = 0; state < states; ++state) {
+              colorToState[stateToColor[state]] = (byte)state;
+            }
+            byte[] initialStates = (from color in image.ImageData select colorToState[color]).ToArray();
+            DefectGrid newArena = new DefectGrid(image.Width, image.Height, states, Neighbourhood, initialStates);
+            Teardown();
+            Arena = newArena;
+            Palette = new uint[states];
+            for (int state = 0; state < states; ++state) {
+              int color = stateToColor[state];
+              int r = colorTable.Table[color].R;
+              int g = colorTable.Table[color].G;
+              int b = colorTable.Table[color].B;
+              Palette[state] = (uint)(b + 256 * g + 65536 * r) + 16777216u * 255u;
+            }
+            InitializeGIFPalette();
+            Setup();
+          }
+        }
+        catch (Exception ex) {
+          MessageBox.Show(String.Format("Loading {0}: {1}",
+                                        openFileDialog.FileName, ex.Message),
+                          "Error loading image",
+                          MessageBoxButton.OK,
+                          MessageBoxImage.Error);
+        }
+      }
+    }
+
     private void SaveAsExecuted(object sender, ExecutedRoutedEventArgs e)
     {
       BitmapFrame frame;
@@ -369,7 +477,8 @@ namespace Defect
 
     #region Setup
 
-    private void Reset() {
+    private void Teardown()
+    {
       // If the worker is going, cancel it
       StopExecuted(null, null);
       if (RecordStream != null) {
@@ -378,12 +487,14 @@ namespace Defect
       if (Arena != null) {
         Arena.Dispose();
       }
-      Arena = new DefectGrid(ArenaWidth, ArenaHeight, ArenaLevels, Neighbourhood);
+    }
+
+    private void Setup()
+    {
       Output.Width = ArenaWidth * Scale;
       Output.Height = ArenaHeight * Scale;
       InitializeBitmap();
       InitializeColorData();
-      InitializePalette();
       UpdateColorData();
       UpdateBitmap();
       Output.Source = Bitmap;
@@ -391,6 +502,15 @@ namespace Defect
       if (RecordFilename != null) {
         InitializeRecording();
       }
+    }
+
+    private void Reset()
+    {
+      Teardown();
+      Arena = new DefectGrid(ArenaWidth, ArenaHeight, ArenaLevels, Neighbourhood, null);
+      InitializePalette();
+      InitializeGIFPalette();
+      Setup();
     }
 
     /// <summary>
@@ -425,11 +545,6 @@ namespace Defect
     private void InitializePalette()
     {
       Palette = new uint[ArenaLevels];
-      GIFPalette = new GIF.ColorTable()
-      {
-        Table = new System.Drawing.Color[ArenaLevels],
-        BackgroundColorIndex = ArenaLevels,
-      };
       for (int level = 0; level < ArenaLevels; ++level) {
         double h = 360.0 * level / ArenaLevels, s = 1.0, v = 1.0;
         double r, g, b;
@@ -437,12 +552,27 @@ namespace Defect
         int ri = (int)(255 * r);
         int gi = (int)(255 * g);
         int bi = (int)(255 * b);
-        Palette[level] = (uint)(ri + 256 * gi + 65536 * bi) + 16777216u * 255u;
-        GIFPalette.Table[level] = System.Drawing.Color.FromArgb(ri, gi, bi);
+        Palette[level] = (uint)(bi + 256 * gi + 65536 * ri) + 16777216u * 255u;
       }
     }
 
-    private void InitializeRecording ()
+    private void InitializeGIFPalette()
+    {
+      GIFPalette = new GIF.ColorTable()
+      {
+        Table = new System.Drawing.Color[ArenaLevels],
+        BackgroundColorIndex = ArenaLevels,
+      };
+      for (int level = 0; level < ArenaLevels; ++level) {
+        uint p = Palette[level];
+        int r = (int)((p >> 0) & 255);
+        int g = (int)((p >> 8) & 255);
+        int b = (int)((p >> 16) & 255);
+        GIFPalette.Table[level] = System.Drawing.Color.FromArgb(r, g, b);
+      }
+    }
+
+    private void InitializeRecording()
     {
       string path = FindUniqueFilename();
       RecordStream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.Read); // TODO errors

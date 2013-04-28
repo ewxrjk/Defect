@@ -46,7 +46,7 @@ namespace Defect
     /// <param name="height"></param>
     /// <param name="levels"></param>
     /// <param name="neighbourhood"></param>
-    public DefectGrid(int width, int height, int levels, CellNeighbourhood neighbourhood)
+    public DefectGrid(int width, int height, int levels, CellNeighbourhood neighbourhood, byte[] initial)
     {
       if (levels < 2) {
         throw new ArgumentException("minimum 2 states");
@@ -61,7 +61,7 @@ namespace Defect
       this.Cells = width * height;
       this.Offset = width * (height + 2);
       this.Flip = false;
-      InitializeBuffer();
+      InitializeBuffer(initial);
     }
 
     private Random rng = new Random();
@@ -82,12 +82,22 @@ namespace Defect
 
     private int Offset;
 
-    private unsafe void InitializeBuffer()
+    private unsafe void InitializeBuffer(byte[] initial)
     {
       this.Buffer = (byte*)Marshal.AllocHGlobal(Width * (Height + 2) * 2);
-      for (int y = 0; y < Height; ++y) {
-        for (int x = 0; x < Width; ++x) {
-          *Location(x, y) = (byte)rng.Next(this.Levels);
+      if (initial == null) {
+        for (int y = 0; y < Height; ++y) {
+          for (int x = 0; x < Width; ++x) {
+            *Location(x, y) = (byte)rng.Next(this.Levels);
+          }
+        }
+      }
+      else {
+        int pos = 0;
+        for (int y = 0; y < Height; ++y) {
+          for (int x = 0; x < Width; ++x) {
+            *Location(x, y) = initial[pos++];
+          }
         }
       }
     }
