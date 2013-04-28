@@ -332,15 +332,15 @@ namespace Defect
                 int yu = (y + 1) % image.Height;
                 int xd = (x == 0 ? image.Width : x) - 1;
                 int yd = (y == 0 ? image.Height : y) - 1;
-                colorAdjacency[color, image.ImageData[y * image.Width + xu]] = 1;
-                colorAdjacency[color, image.ImageData[y * image.Width + xd]] = 1;
-                colorAdjacency[color, image.ImageData[yu * image.Width + x]] = 1;
-                colorAdjacency[color, image.ImageData[yd * image.Width + x]] = 1;
+                colorAdjacency[color, image.ImageData[y * image.Width + xu]]++;
+                colorAdjacency[color, image.ImageData[y * image.Width + xd]]++;
+                colorAdjacency[color, image.ImageData[yu * image.Width + x]]++;
+                colorAdjacency[color, image.ImageData[yd * image.Width + x]]++;
                 if (Neighbourhood == CellNeighbourhood.Moore) {
-                  colorAdjacency[color, image.ImageData[yu * image.Width + xu]] = 1;
-                  colorAdjacency[color, image.ImageData[yu * image.Width + xd]] = 1;
-                  colorAdjacency[color, image.ImageData[yd * image.Width + xu]] = 1;
-                  colorAdjacency[color, image.ImageData[yd * image.Width + xd]] = 1;
+                  colorAdjacency[color, image.ImageData[yu * image.Width + xu]]++;
+                  colorAdjacency[color, image.ImageData[yu * image.Width + xd]]++;
+                  colorAdjacency[color, image.ImageData[yd * image.Width + xu]]++;
+                  colorAdjacency[color, image.ImageData[yd * image.Width + xd]]++;
                 }
               }
             }
