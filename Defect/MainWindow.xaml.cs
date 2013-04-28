@@ -491,8 +491,8 @@ namespace Defect
 
     private void Setup()
     {
-      Output.Width = ArenaWidth * Scale;
-      Output.Height = ArenaHeight * Scale;
+      Output.Width = Arena.Width * Scale;
+      Output.Height = Arena.Height * Scale;
       InitializeBitmap();
       InitializeColorData();
       UpdateColorData();
