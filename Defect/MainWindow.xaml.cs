@@ -378,7 +378,6 @@ namespace Defect
               }
               else {
                 fitness = newFitness;
-                Console.WriteLine("{0} fitness -> {1}", iteration, fitness);
               }
             }
             // Construct reverse array
